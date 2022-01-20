@@ -38,15 +38,18 @@ class Dataset(Dataset):
             data = self.transform(Image.open(self.data_dictionary['image'][idx]))
 
         label = self.data_dictionary['label'][idx]
-        return data, label
+
+        data_dictionary = {}
+        data_dictionary = self.data_dictionary
+        return data_dictionary
     
 
 # get loader from Dataset as batch size
 def get_loader(img_dir, label_dir, data_type, batch_size, workers):
-    dataset, label = Dataset(img_dir, label_dir, data_type)
-    dataloader     = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, 
-                                                 shuffle=True, num_workers=workers, drop_last=True)
-    return dataloader, label
+    dataset    = Dataset(img_dir, label_dir, data_type)
+    dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, 
+                                             shuffle=True, num_workers=workers, drop_last=True)
+    return dataloader
 
 
 # Data transform
