@@ -39,7 +39,7 @@ class Dataset(Dataset):
 
         label = self.data_dictionary['label'][idx]
 
-        data_dictionary = {}
+        data_dictionary = {'image' : data, 'label' : label}
         data_dictionary = self.data_dictionary
         return data_dictionary
     
