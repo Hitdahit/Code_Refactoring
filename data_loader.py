@@ -84,16 +84,15 @@ class Dataset(Dataset):
     
     def __getitem__(self, idx):
         if self.data_type == 'CT':
-            data = self.transform(CT_preprocess(self.data_dictionary['image'][idx]))*2 - 1 # value range : -1.0 ~ 1.0
+            data = self.transform(CT_preprocess(self.data_dictionary[idx]['image']))*2 - 1 # value range : -1.0 ~ 1.0
         elif self.data_type == 'X-ray':
-            data = self.transform(Xray_preprocess(self.data_dictionary['image'][idx]))*2 - 1 # value range : -1.0 ~ 1.0
+            data = self.transform(Xray_preprocess(self.data_dictionary[idx]['image']))*2 - 1 # value range : -1.0 ~ 1.0
         else:
-            data = self.transform(Image.open(self.data_dictionary['image'][idx]))
+            data = self.transform(Image.open(self.data_dictionary[idx]['image']))
 
-        label = self.data_dictionary['label'][idx]
+        label = self.data_dictionary[idx]['label']
 
         data_dictionary = {'image' : data, 'label' : label}
-        data_dictionary = self.data_dictionary
         return data_dictionary
     
 
