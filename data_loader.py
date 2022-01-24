@@ -31,9 +31,9 @@ class Dataset(Dataset):
     
     def __getitem__(self, idx):
         if self.data_type == 'CT':
-            data = self.transform(CT_preprocess(self.data_dictionary['image'][idx]))
+            data = self.transform(CT_preprocess(self.data_dictionary['image'][idx]))*2 - 1 # value range : -1.0 ~ 1.0
         elif self.data_type == 'X-ray':
-            data = self.transform(Xray_preprocess(self.data_dictionary['image'][idx]))
+            data = self.transform(Xray_preprocess(self.data_dictionary['image'][idx]))*2 - 1 # value range : -1.0 ~ 1.0
         else:
             data = self.transform(Image.open(self.data_dictionary['image'][idx]))
 
@@ -68,7 +68,6 @@ def CT_preprocess(data):
     dicom_image = pydicom.read_file(data)
 
     pixel_array_image = dicom_image.pixel_array.astype(np.float32)
-    pixel_array_image = (pixel_array_image / (2**dicom_image.BitsStored))
 
     intercept = dicom_image.RescaleIntercept
     slope     = dicom_image.RescaleSlope
@@ -76,20 +75,8 @@ def CT_preprocess(data):
     if ('RescaleSlope' in dicom_image) and ('RescaleIntercept' in dicom_image):
         pixel_array_image = pixel_array_image * slope + intercept
 
-    if('WindowCenter' in dicom_image):
-        if(type(dicom_image.Windowcenter) == pydicom.multival.MultiValue):
-            window_center = float(dicom_image.WindowCenter[0])
-            window_width  = float(dicom_image.WindowWidth[0])
-            image_min     = window_center - window_width // 2
-            image_max     = window_center + window_width // 2
-        else:
-            window_center = float(dicom_image.WindowCenter)
-            window_width  = float(dicom_image.WindowWidth)
-            image_min     = window_center - window_width // 2
-            image_max     = window_center + window_width // 2
-    else:
-        image_min = np.min(pixel_array_image)
-        image_max = np.max(pixel_array_image)
+    image_min = np.min(pixel_array_image)
+    image_max = np.max(pixel_array_image)
 
     pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
     pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
