@@ -7,7 +7,6 @@ import cv2
 import glob
 import pydicom
 import numpy as np
-import SimpleITK as sitk
 
 from train import Albumentations
 
@@ -41,18 +40,18 @@ def CT_preprocess(data):
 def Xray_preprocess(data):
     dicom_image = pydicom.read_file(data)
 
-    image = dicom_image.pixel_array.astype(np.float32).squeeze()
-    if image.shape != (512, 512):
-        img = cv2.resize(image, (512, 512))
-    if len(image.shape) == 3:
-        image = image[:,:,0]
+    pixel_array_image = dicom_image.pixel_array.astype(np.float32).squeeze()
+    pixel_array_image = pixel_array_image / (2.0 ** dicom_image.BitsStored)
+    if pixel_array_image.shape != (512, 512):
+        pixel_array_image = cv2.resize(pixel_array_image, (512, 512))
+    if len(pixel_array_image.shape) == 3:
+        pixel_array_image = pixel_array_image[:,:,0]
 
-    np_image = img.astype(np.float32)
-    np_image -= np.min(np_image)
-    np_image /= np.percentile(np_image, 99)
-    np_image[np_image > 1] = 1
+    pixel_array_image -= np.min(pixel_array_image)
+    pixel_array_image /= np.percentile(pixel_array_image, 99)
+    pixel_array_image[pixel_array_image > 1] = 1
 
-    return np_image # output : 0.0 ~ 1.0
+    return pixel_array_image # output : 0.0 ~ 1.0
 
 
 # Make Dataset
