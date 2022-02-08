@@ -1,0 +1,66 @@
+ver 1
+# Hardware setting
+GPU_number = 
+GPU_id = 
+num_worker = 
+
+# train setting
+seed = 42
+batch_size = 4
+img_size = 
+epochs = 
+learning_rate = 1e-3
+
+# modality
+modality = CT, XR, MR, EN, SO
+dimiension = 2, 3
+is_time_series = True, False
+
+# checkpoint, logs
+checkpoint_dir =
+logs_dir =
+
+# model setting
+augmentation = 
+model = vgg
+task_type= binary
+optimizer =
+scheduler = 
+
+ver 2
+# Hardware setting
+GPU_number = 100
+GPU_id = 100
+num_worker = 100 
+
+# train setting
+seed = 42
+batch_size = 4
+img_size = 512
+epochs = 1000000
+learning_rate = 1e-3
+
+# modality
+modality = EN
+dimiension = 2, 3
+is_time_series = True, False
+
+# checkpoint, logs
+checkpoint_dir =
+logs_dir =
+
+# model setting
+augmentation = 
+model = vgg
+task_type = binary
+optimizer =
+scheduler = 
+
+ver 3
+...
+
+
+
+
+
+
