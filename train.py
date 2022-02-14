@@ -1,46 +1,59 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
 import os
 import numpy as np
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# val = validation
 
-# loss_functions
-nn.CrossEntropyLoss
-nn.BCELoss
-nn.BCEWithLogitsLoss
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 '''
 TOBE
 '''
+
 def _parser(args):
-    ~~~
+
+    if 'binary' in args.task_type:
+        n_classes = 2
     # loss path
     if 'cross' in args.loss:
-        loss = nn.CrossEntropyLoss()
+        loss_function = nn.CrossEntropyLoss()
     # 
     if 'resnet50' in args.model:
-        model = model.resnet
+        model = model.ResNet50_Classifier(n_classes=n_classes)
+        
+    if 'Adam' in args.optimizer:
+        optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+        
+
     
-    tr_path = args.tr_img_dir
+    
+    train_image_dir = args.train_img_dir
+    train_label_dir = args.train_label_dir
+    val_img_dir = args.val_img_dir
+    val_label_dir = args.val_label_dir
+    
+    epochs = args.epochs
+    
     
     return loss, model, ...
  
-        
-def binary_classification_train(args):
-    model, loss_function, metric_function, optimizer, epochs = _parser(args)
-    ~~~
+
 
 '''
 present
 '''
-def binary_classification_train(model, loss_function, 
-                                metric_function, optimizer, epochs, train_image_dir, validation_image_dir):
-    train_dataloader = get_loader(train_image_dir, train_label_dir, 
+
+def binary_classification_train(args):
+    train_img_dir, train_label_dir, val_img_dir, val_label_dir, data_type, batch_size, workers, logs_dir,\
+    epochs, model, loss, metric, optimizer = _parser(args)
+    
+    train_dataloader = get_loader(train_img_dir, train_label_dir, 
                                   data_type, batch_size, workers)
-    validation_dataloader = get_loader(validation_image_dir, validation_label_dir, 
+    val_dataloader = get_loader(val_image_dir, val_label_dir, 
                                        data_type, batch_size, workers)
     
 
@@ -48,7 +61,9 @@ def binary_classification_train(model, loss_function,
     writer_val = SummaryWriter(logs_dir=os.path.join(logs_dir, 'val'))
 
     train_loss = []
-    validation_loss = []
+    train_metric = []
+    val_loss = []
+    val_metric = []
     
     model.to(device)
 
@@ -76,8 +91,10 @@ def binary_classification_train(model, loss_function,
 
         # Tensorboard save
         writer_train.add_scalar('loss', np.mean(loss_epoch), epoch + 1)
+        writer_train.add_scalar('accuracy', np.mean(metric_epoch), epoch + 1) # metric? accuracy?
 
         train_loss.append(np.mean(loss_epoch))
+        train_metric.append(np.mean(metric_epoch))
 
         # validation
         with torch.no_grad():
@@ -85,7 +102,7 @@ def binary_classification_train(model, loss_function,
             loss_epoch = []
             metric_epoch = []
 
-            for index, data in enumerate(validation_dataloader, 1):
+            for index, data in enumerate(val_dataloader, 1):
                 # forward pass
                 x = data['image'].to(device)
                 y = data['label'].to(device)
@@ -100,8 +117,10 @@ def binary_classification_train(model, loss_function,
 
             # Tensorboard save
         writer_val.add_scalar('loss', np.mean(loss_epoch), epoch + 1)
+        writer_val.add_scalar('accuracy', np.mean(metric_epoch), epoch + 1)
 
-        validation_loss.append(np.mean(loss_epoch))
+        val_loss.append(np.mean(loss_epoch))
+        val_metric.append(np.mean(metric_epoch))
 
         # model, optimizer save all epoch
         torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
@@ -110,4 +129,4 @@ def binary_classification_train(model, loss_function,
     writer_train.close()
     writer_val.close()
 
-    return train_loss, validation_loss
+    return train_loss, val_loss
