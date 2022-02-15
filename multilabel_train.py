@@ -22,8 +22,8 @@ def multilabel_one_hot(labels, num_classes): # 로더에 추가 하면 좋을것
     #-> [1,0,0,0,0]
     #   [0,1,0,0,0]
     #   [0,0,0,1,0]
-    #channel 기준 더하기 -> [1,1,0,1,0]
-    y_onehot = F.one_hot(labels, num_classes).sum(dim=1).float()  
+    # 행 기준 더하기 -> [1,1,0,1,0]
+    y_onehot = F.one_hot(labels, num_classes).sum(dim=0).float()  
     return y_onehot
 
 def multilabel_classification_train(args):
