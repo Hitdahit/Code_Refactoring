@@ -14,20 +14,30 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # CPU/GPU�
 TOBE
 '''
 
+
 def _parser(args):
 
-    if 'binary' in args.task_type:
-        n_classes = 2
-    # loss path
-    if 'cross' in args.loss:
-        loss_function = nn.CrossEntropyLoss()
-    # 
-    if 'resnet50' in args.model:
-        model = model.ResNet50_Classifier(n_classes=n_classes)
+    task_type = args.task_type
+    n_classes = int(args.num_class)
+    
+    losses = {'BCE':nn.BCEWithLogitsLoss(),'CE':nn.CrossEntropyLoss(), 'F':}  # 추후 추가
+    loss = None
+    for key, value in losses.items():
+        if key in args.loss:
+            loss = value
+    
+    models = {'vgg':model.VGG_Classifier(n_classes, int(args.model_size)),\
+            'resnet':model.ResNet_Classifier(n_classes, int(args.model_size)),\
+            'densenet':model.DenseNet_Classifier(n_classes, int(args.model_size)),\
+            'efficientnet': model.EfficientNet_Classifier(n_classes, int(args.model_size))}
+    model = None
+    for key, value in models.items():
+        if key in args.model:
+            model = value
+
+    
         
-    if 'Adam' in args.optimizer:
-        optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-        
+    
 
     
     
@@ -40,6 +50,7 @@ def _parser(args):
     
     
     return loss, model, ...
+ 
  
 
 
