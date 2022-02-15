@@ -70,26 +70,68 @@ class Version_Dictionary:          #class만들어서 하나하나 넣자  # 날
     def _key_value_extractor_value(self, list_name):
         value = list_name.replace(" ","").split('=')[-1]
         return value
-        
 
-def parser(args):
+    def _set_value(self):
+        n_classes = int(self.num_class)
+    
+        losses = {'BCE':nn.BCEWithLogitsLoss(),'CE':nn.CrossEntropyLoss(), 'F':}  # 추후 추가
+        loss = None
+        for key, value in losses.items():
+            if key in self.loss:
+                loss = value
+
+        models = {'vgg':model.VGG_Classifier(n_classes, int(self.model_size)),\
+                'resnet':model.ResNet_Classifier(n_classes, int(self.model_size)),\
+                'densenet':model.DenseNet_Classifier(n_classes, int(self.model_size)),\
+                'efficientnet': model.EfficientNet_Classifier(n_classes, int(self.model_size))}
+        model = None
+        for key, value in models.items():
+            if key in self.model:
+                model = value
+
+        # optimizer TODO
+
+        # scheduler TODO
+
+
+        os.environ["CUDA_VISIBLE_DEVICES"]=self.GPU_number
+        device = torch.device(f'cuda:{int(self.GPU_id)}' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
+        seed = int(self.seed)
+        batch_size = int(self.batch_size)
+        img_size = int(self.img_size)
+        epochs = int(self.epochs)
+        lr = float(self.leraning_rate)
+        modality = self.modality   # TODO
+        dimension = int(self.dimension) #TODO
+
+        ckpt_dir = self.checkpoint_dir
+        log_dir = self.logs_dir
+        data_dir = self.data_dir
+
+        # augmentation TOCO
+        task_type = self.task_type
+
+
+        epochs = self.epochs
+
+def param_parser(self):
 
     
-    n_classes = int(args.num_class)
+    n_classes = int(self.num_class)
     
     losses = {'BCE':nn.BCEWithLogitsLoss(),'CE':nn.CrossEntropyLoss(), 'F':}  # 추후 추가
     loss = None
     for key, value in losses.items():
-        if key in args.loss:
+        if key in self.loss:
             loss = value
     
-    models = {'vgg':model.VGG_Classifier(n_classes, int(args.model_size)),\
-            'resnet':model.ResNet_Classifier(n_classes, int(args.model_size)),\
-            'densenet':model.DenseNet_Classifier(n_classes, int(args.model_size)),\
-            'efficientnet': model.EfficientNet_Classifier(n_classes, int(args.model_size))}
+    models = {'vgg':model.VGG_Classifier(n_classes, int(self.model_size)),\
+            'resnet':model.ResNet_Classifier(n_classes, int(self.model_size)),\
+            'densenet':model.DenseNet_Classifier(n_classes, int(self.model_size)),\
+            'efficientnet': model.EfficientNet_Classifier(n_classes, int(self.model_size))}
     model = None
     for key, value in models.items():
-        if key in args.model:
+        if key in self.model:
             model = value
 
     # optimizer TODO
@@ -97,25 +139,25 @@ def parser(args):
     # scheduler TODO
         
 
-    os.environ["CUDA_VISIBLE_DEVICES"]=args.GPU_number
-    device = torch.device(f'cuda:{int(args.GPU_id)}' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
-    seed = int(args.seed)
-    batch_size = int(args.batch_size)
-    img_size = int(args.img_size)
-    epochs = int(args.epochs)
-    lr = float(args.leraning_rate)
-    modality = args.modality   # TODO
-    dimension = int(args.dimension) #TODO
+    os.environ["CUDA_VISIBLE_DEVICES"]=self.GPU_number
+    device = torch.device(f'cuda:{int(self.GPU_id)}' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
+    seed = int(self.seed)
+    batch_size = int(self.batch_size)
+    img_size = int(self.img_size)
+    epochs = int(self.epochs)
+    lr = float(self.leraning_rate)
+    modality = self.modality   # TODO
+    dimension = int(self.dimension) #TODO
 
-    ckpt_dir = args.checkpoint_dir
-    log_dir = args.logs_dir
-    data_dir = args.data_dir
+    ckpt_dir = self.checkpoint_dir
+    log_dir = self.logs_dir
+    data_dir = self.data_dir
 
     # augmentation TOCO
-    task_type = args.task_type
+    task_type = self.task_type
 
     
-    epochs = args.epochs
+    epochs = self.epochs
     
     
     return device, seed, batch_size, img_size, epochs, lr, modality, \
