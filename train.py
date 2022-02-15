@@ -8,50 +8,15 @@ import numpy as np
 
 # val = validation
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
+
 
 '''
 TOBE
 '''
 
 
-def _parser(args):
 
-    task_type = args.task_type
-    n_classes = int(args.num_class)
-    
-    losses = {'BCE':nn.BCEWithLogitsLoss(),'CE':nn.CrossEntropyLoss(), 'F':}  # 추후 추가
-    loss = None
-    for key, value in losses.items():
-        if key in args.loss:
-            loss = value
-    
-    models = {'vgg':model.VGG_Classifier(n_classes, int(args.model_size)),\
-            'resnet':model.ResNet_Classifier(n_classes, int(args.model_size)),\
-            'densenet':model.DenseNet_Classifier(n_classes, int(args.model_size)),\
-            'efficientnet': model.EfficientNet_Classifier(n_classes, int(args.model_size))}
-    model = None
-    for key, value in models.items():
-        if key in args.model:
-            model = value
 
-    
-        
-    
-
-    
-    
-    train_image_dir = args.train_img_dir
-    train_label_dir = args.train_label_dir
-    val_img_dir = args.val_img_dir
-    val_label_dir = args.val_label_dir
-    
-    epochs = args.epochs
-    
-    
-    return loss, model, ...
- 
- 
 
 
 '''
