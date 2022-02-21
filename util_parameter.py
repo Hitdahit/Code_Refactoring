@@ -1,4 +1,9 @@
-from concurrent.futures.process import _ResultItem
+import os
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import albumentations as A
+import albumentations.pytorch
 
 
 def get_version_text(version, path):
@@ -72,95 +77,91 @@ class Version_Dictionary:          #class만들어서 하나하나 넣자  # 날
         return value
 
     def _set_value(self):
-        n_classes = int(self.num_class)
+        os.environ["CUDA_VISIBLE_DEVICES"]=self.GPU_number
+        self.n_classes = int(self.num_class)
+        self.device = torch.device(f'cuda:{int(self.GPU_id)}' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
+        self.seed = int(self.seed)
+        self.batch_size = int(self.batch_size)
+        self.img_size = int(self.img_size)
+        self.epochs = int(self.epochs)
+        self.lr = float(self.leraning_rate)
+
+        '''
+        eps (float) -> for Adam family
+
+        lr_decay (float), weight_decay (float), initial_accumulator_value (int) -> for Adagrad
+
+        betas (tuple, float), weight_decay (float) -> for Adam
+
+        dampening (int) -> for SGD
+
+        '''
+        self.lr_decay = float(self.lr_decay) if self.lr_decay is not None else None
+        self.weight_decay = float(self.weight_decay) if self.weight_decay is not None else None
+        self.initial_accumulator_value = int(self.accumulator_value) if self.accumulator_value is not None else None
+        self.eps = float(self.eps) if self.eps is not None else None
+        self.betas = (float(self.betas1), float(self.betas2)) if self.betas1 is not None else None
+        self.dampening = int(self.dampening) if self.dampening is not None else None
+
+        self.modality = self.modality   # TODO
+        self.dimension = int(self.dimension) #TODO
+
+        self.ckpt_dir = self.checkpoint_dir
+        self.log_dir = self.logs_dir
+        self.data_dir = self.data_dir
+
+        # augmentation TOCO
+        self.task_type = self.task_type
+
+
+        self.epochs = self.epochs
     
         losses = {'BCE':nn.BCEWithLogitsLoss(),'CE':nn.CrossEntropyLoss(), 'F':}  # 추후 추가
         loss = None
         for key, value in losses.items():
             if key in self.loss:
                 loss = value
+        self.loss = loss
 
         models = {'vgg':model.VGG_Classifier(n_classes, int(self.model_size)),\
                 'resnet':model.ResNet_Classifier(n_classes, int(self.model_size)),\
                 'densenet':model.DenseNet_Classifier(n_classes, int(self.model_size)),\
                 'efficientnet': model.EfficientNet_Classifier(n_classes, int(self.model_size))}
-        model = None
+        self.model = None
         for key, value in models.items():
             if key in self.model:
-                model = value
+                self.model = value
 
         # optimizer TODO
+        '''
+        CLASS: torch.optim.Adagrad(params, lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0, eps=1e-10)
+        https://pytorch.org/docs/stable/generated/torch.optim.Adagrad.html#torch.optim.Adagrad
+
+        CLASS torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
+        https://pytorch.org/docs/stable/generated/torch.optim.Adam.html#torch.optim.Adam
+
+        CLASS torch.optim.AdamW(params, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, amsgrad=False)
+        https://pytorch.org/docs/stable/generated/torch.optim.AdamW.html#torch.optim.AdamW
+
+        CLASS torch.optim.SGD(params, lr=<required parameter>, momentum=0, dampening=0, weight_decay=0, nesterov=False)
+        https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD
+        '''
+
+        optimizers = {'Adagrad':optim.Adagrad(params = self.model.parameters(), lr=self.lr, lr_decay=self.lr_decay, weight_decay=self.weight_decay, initial_accumulator_value=self.initial_accumulator_value, eps=self.eps),\
+                    'Adam':optim.Adam(params = self.model.parameters(), lr=self.lr, betas=self.betas, eps=self.eps, weight_decay=self.weight_decay), \
+                    'AdamW':optim.AdamW(params = self.model.parameters(), lr=self.lr, betas=self.betas, eps=self.eps, weight_decay=self.weight_decay),\
+                    'SGD':optim.SGD(params = self.model.parameters(), lr=self.lr, dampening=self.dampening, weight_decay=self.weight_decay, nesterov=False)}
+        optimizer = None
+        for key, value in optimizers.items():
+            if key in self.optimizer:
+                optimizer = value
+        self.optimizer = optimizer
 
         # scheduler TODO
 
 
-        os.environ["CUDA_VISIBLE_DEVICES"]=self.GPU_number
-        device = torch.device(f'cuda:{int(self.GPU_id)}' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
-        seed = int(self.seed)
-        batch_size = int(self.batch_size)
-        img_size = int(self.img_size)
-        epochs = int(self.epochs)
-        lr = float(self.leraning_rate)
-        modality = self.modality   # TODO
-        dimension = int(self.dimension) #TODO
-
-        ckpt_dir = self.checkpoint_dir
-        log_dir = self.logs_dir
-        data_dir = self.data_dir
-
-        # augmentation TOCO
-        task_type = self.task_type
-
-
-        epochs = self.epochs
-
-def param_parser(self):
-
-    
-    n_classes = int(self.num_class)
-    
-    losses = {'BCE':nn.BCEWithLogitsLoss(),'CE':nn.CrossEntropyLoss(), 'F':}  # 추후 추가
-    loss = None
-    for key, value in losses.items():
-        if key in self.loss:
-            loss = value
-    
-    models = {'vgg':model.VGG_Classifier(n_classes, int(self.model_size)),\
-            'resnet':model.ResNet_Classifier(n_classes, int(self.model_size)),\
-            'densenet':model.DenseNet_Classifier(n_classes, int(self.model_size)),\
-            'efficientnet': model.EfficientNet_Classifier(n_classes, int(self.model_size))}
-    model = None
-    for key, value in models.items():
-        if key in self.model:
-            model = value
-
-    # optimizer TODO
-
-    # scheduler TODO
         
 
-    os.environ["CUDA_VISIBLE_DEVICES"]=self.GPU_number
-    device = torch.device(f'cuda:{int(self.GPU_id)}' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
-    seed = int(self.seed)
-    batch_size = int(self.batch_size)
-    img_size = int(self.img_size)
-    epochs = int(self.epochs)
-    lr = float(self.leraning_rate)
-    modality = self.modality   # TODO
-    dimension = int(self.dimension) #TODO
 
-    ckpt_dir = self.checkpoint_dir
-    log_dir = self.logs_dir
-    data_dir = self.data_dir
-
-    # augmentation TOCO
-    task_type = self.task_type
-
-    
-    epochs = self.epochs
-    
-    
-    return device, seed, batch_size, img_size, epochs, lr, modality, \
-        dimension, ckpt_dir, log_dir, data_dir, augmentation, task_type, loss, model
  
  
