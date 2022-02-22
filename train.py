@@ -6,22 +6,12 @@ from torch.utils.tensorboard import SummaryWriter # 텐서보드 사용
 import os # os.path.join 사용
 import numpy as np
 
+from sklearn.metrics import accuracy_score
+
 # val = validation
-
-
-
-'''
-TOBE
-'''
-
-
-
-
-
-
-'''
-present
-'''
+def BC_metric(y, yhat):
+    metric = accuracy_score(y, yhat)
+    return metric
 
 def binary_classification_train(args):
     '''
@@ -29,69 +19,74 @@ def binary_classification_train(args):
     input: args
     output: train_loss, train_metric, val_loss, val_metric
     '''
-    # _parser 함수의 리턴값으로 사용할 파라미터 가져오기
-    # train_img_dir: training에 사용할 image의 path
-    train_img_dir, train_label_dir, val_img_dir, val_label_dir, data_type, batch_size, workers, logs_dir,\
-    epochs, model, loss, metric, optimizer = _parser(args)
-    
-    # train에 사용할 data loading. batch_size별로 끊어서 출력됨
-    train_dataloader = get_loader(train_img_dir, train_label_dir, 
-                                  data_type, batch_size, workers)
-    # validation에 사용할 data loading. batch_size별로 끊어서 출력됨
-    val_dataloader = get_loader(val_image_dir, val_label_dir, 
-                                       data_type, batch_size, workers)
+    # data loading
+    train_dataloader = get_loader(args)
+    val_dataloader = get_loader(args)
     
     # 텐서보드를 사용하기 위한 SummaryWriter 설정, log 파일을 저장할 경로
-    writer_train = SummaryWriter(logs_dir=os.path.join(logs_dir, 'train'))
-    writer_val = SummaryWriter(logs_dir=os.path.join(logs_dir, 'val'))
+    writer_train = SummaryWriter(logs_dir=os.path.join(args.log_dir, 'train'))
+    writer_val = SummaryWriter(logs_dir=os.path.join(args.log_dir, 'val'))
 
-    train_loss = [] # train loop의 loss를 저장하기 위한 빈 list. epoch마다 하나씩 추가
-    train_metric = [] # train loop의 metirc을 저장하기 위한 빈 list. epoch마다 하나씩 추가
-    val_loss = [] # validation loop의 loss를 저장하기 위한 빈 list. epoch마다 하나씩 추가
-    val_metric = [] # validation loop의 metric를 저장하기 위한 빈 list. epoch마다 하나씩 추가
+    # epoch 마다 하나씩 추가될 list들
+    train_loss = []
+    train_metric = []
+    val_loss = []
+    val_metric = []
     
-    model.to(device) # model이 GPU에서 돌아가도록 설정
+    model = args.model
+    loss_function = args.loss
+    optimizer = args.optimizer
+    model.to(args.device) # model이 GPU에서 돌아가도록 설정
 
-    for epoch in range(epochs): # 0 ~ (epochs-1) 번의 for 문을 실행. for문의 index = epoch
-        model.train() # 모델을 학습 모드로 변환
-        loss_epoch = [] # 한 epoch 내에서 batch마다 계산될 loss 저장하는 빈 list
-        metric_epoch = [] # 한 epoch 내에서 batch마다 계산될 metric 저장하는 빈 list
+    for epoch in range(args.epochs): # 0 ~ (epochs-1) 번의 for 문을 실행. for문의 index = epoch
+        model.train()
+        loss_epoch = []
+        metric_epoch = []
 
-        # train loop
-        # enumerate: index와 내용 같이 retrun
-        # batch: (batch_size x C x H x W)
-        # 0 ~ (전체 data 개수 / batch_size) 번의 for문 실행
+        '''
+        train loop
+        batch: (batch_size x C x H x W)
+        0 ~ (전체 data 개수 / batch_size) 번의 for문 실행
+        '''
         for index, batch in enumerate(train_dataloader): 
-            x = batch['image'].to(device) # 배치의 image를 설정한 device(GPU)로 보냄
-            y = batch['label'].to(device) # 배치의 label을 설정한 device(GPU)로 보냄
+            x = batch['image'].to(args.device)
+            y = batch['label'].to(args.device)
 
-            yhat = model(x) # forward: model에 image(x)를 넣어서 가설(yhat) 획득
+            # forward
+            yhat = model(x)
 
-            loss = loss_function(yhat, y) # 가설(yhat)과 ground truth(y) 비교해 loss 계산
-            metric = metric_function(y, yhat) # metric 계산
+            loss = loss_function(yhat, y)
+            metric = BC_metric(y, yhat) # metric 계산
 
-            optimizer.zero_grad() # gradient 초기화
-            loss.backward() # 구한 loss로부터 back propagation을 통해 각 변수마다 loss에 대한 gradient 를 구해주기
-            optimizer.step() # 계산한 기울기 + opimizer의 알고리즘에 맞춰 model의 파라미터 업데이트
+            # backward
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-            loss_epoch.append(loss.detach().cpu().numpy()) # 한 epoch 내의 loss 값 추가
-            metric_epoch.append(metric.detach().cpu().numpy()) # 한 epoch 내의 metric 값 추가
+            '''
+            한 epoch 내의 loss, metric 값 추가
+            '''
+            loss_epoch.append(loss.detach().cpu().numpy())
+            metric_epoch.append(metric.detach().cpu().numpy())
 
         # Tensorboard save
         writer_train.add_scalar('loss', np.mean(loss_epoch), epoch + 1)
-        writer_train.add_scalar('accuracy', np.mean(metric_epoch), epoch + 1) # metric? accuracy?
+        writer_train.add_scalar('accuracy', np.mean(metric_epoch), epoch + 1)
 
         train_loss.append(np.mean(loss_epoch)) # 1 epoch 마다 train loss 추가
         train_metric.append(np.mean(metric_epoch)) # 1 epoch 마다 train metric 추가
 
-        # validation loop
-        with torch.no_grad(): # autograd 꺼서 gradient 계산 안함: 메모리 사용량 save
-            model.eval() # model의 layer들을 evaluation mode로 설정: inference 시에 layer 작동 변화(dropout layer 끔, batchnorm 저장된 파라미터 사용)
+        '''
+        validation loop
+        torch.no_grad() : autograd 꺼서 gradient 계산 안함: 메모리 사용량 save
+        model.eval() : model의 layer들을 evaluation mode로 설정: inference 시에 layer 작동 변화(dropout layer 끔, batchnorm 저장된 파라미터 사용)
+        '''
+        with torch.no_grad():
+            model.eval()
             loss_epoch = []
             metric_epoch = []
 
             for index, data in enumerate(val_dataloader):
-                # forward pass
                 x = data['image'].to(device)
                 y = data['label'].to(device)
 
