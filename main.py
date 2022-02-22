@@ -19,5 +19,6 @@ args = parser(args)
 if 'BC' in args.task_type:
     binary_classification_train(args)
 elif 'MC' in args.task_type:
+    multiclass_classification_train(args)
+elif 'ML' in args.task_type:
     pass
-
