@@ -2,6 +2,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
 import albumentations as A
 import albumentations.pytorch
 
@@ -76,7 +77,7 @@ class Version_Dictionary:          #class만들어서 하나하나 넣자  # 날
         value = list_name.replace(" ","").split('=')[-1]
         return value
 
-    def _set_value(self):
+    def set_value(self):
         os.environ["CUDA_VISIBLE_DEVICES"]=self.GPU_number
         self.n_classes = int(self.num_class)
         self.device = torch.device(f'cuda:{int(self.GPU_id)}' if torch.cuda.is_available() else 'cpu') # CPU/GPU에서 돌아갈지 정하는 device flag
@@ -145,6 +146,8 @@ class Version_Dictionary:          #class만들어서 하나하나 넣자  # 날
 
         CLASS torch.optim.SGD(params, lr=<required parameter>, momentum=0, dampening=0, weight_decay=0, nesterov=False)
         https://pytorch.org/docs/stable/generated/torch.optim.SGD.html#torch.optim.SGD
+
+        if want to optimize two different network with one optimizer, then use itertools.chain().
         '''
 
         optimizers = {'Adagrad':optim.Adagrad(params = self.model.parameters(), lr=self.lr, lr_decay=self.lr_decay, weight_decay=self.weight_decay, initial_accumulator_value=self.initial_accumulator_value, eps=self.eps),\
@@ -158,7 +161,26 @@ class Version_Dictionary:          #class만들어서 하나하나 넣자  # 날
         self.optimizer = optimizer
 
         # scheduler TODO
+        '''
+        CLASS torch.optim.lr_scheduler.StepLR(optimizer, step_size, gamma=0.1, last_epoch=- 1, verbose=False)
 
+        CLASS torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones, gamma=0.1, last_epoch=- 1, verbose=False)
+        
+        CLASS torch.optim.lr_scheduler.ConstantLR(optimizer, factor=0.3333333333333333, total_iters=5, last_epoch=- 1, verbose=False)
+
+        CLASS torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=0.3333333333333333, end_factor=1.0, total_iters=5, last_epoch=- 1, verbose=False)
+
+        CLASS torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max, eta_min=0, last_epoch=- 1, verbose=False)
+
+        CLASS torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08, verbose=False)
+        '''
+        schedulers = {'StepLR': lr_scheduler.StepLR(optimizer=self.optimizer, step_size=step_size, gamma=self.gamma, last_epoch=self.last_epoch, verbose=self.verbose),\
+                    'MStepLR': lr_scheduler.MultiStepLR(optimizer=self.optimizer, milestones=self.milestones, gamma=self.gamma, last_epoch=self.last_epoch, verboas=self.verbose),\
+                    'ConstLR': lr_scheduler.ConstantLR(optimizer=self.optimizer, factor=self.factor, total_iters=self.total_iters, last_epoch=self.last_epoch, verbose=self.verboase),\
+                    'LinearLR': lr_scheduler.LinearLR(optimizer=self.optimizer, start_factor=self.start_factor, end_factor=self.end_factor, total_iters=self.total_iters, last_epoch=self.last_epoch, verbose=self.verbose), \
+                    'CosAnnealLR': lr_scheduler.cosineAnnealingLR(optimizer=self.optimizer, T_max=self.T_max, eta_min=self.eta_min, last_epoch=self.last_epoch, verbose=self.verbose), \
+                    'ReduceLR': lr_scheduler.ReduceLROnPlateau(optimizer=self.optimizer, mode=self.mode, factor=self.factor, patience=self.patience, threshold=self.threshold, threshold_mode=self.threshold_mode, min_lr=self.min_lr, eps=self.eps, verbose=self.verbose)
+        }
 
         
 
