@@ -48,16 +48,35 @@ class Dataset(Dataset):
 
         data_dictionary = {'image' : data, 'label' : label} # Make dictionary which has one data to image key and one label to label key
         return data_dictionary
-    
+    def _BC_labeler(self):
+        '''
+        get label from path
+        '''
+        pass
+    def _MC_labeler(self):
+        '''
+        get label from filename
+        '''
+        pass
+    def _ML_labeler(self):
+        '''
+        custom your labeler
+        '''
+        pass
 
 # get loader from Dataset as batch size
-def get_loader(img_dir, label_dir, preprocess_type, transform, batch_size, workers):
-    dataset = Dataset(img_dir, label_dir, preprocess_type, transform)
-    dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
-                            shuffle=False, num_workers=workers,
-                            drop_last=True)
+# img_dir, label_dir, preprocess_type, transform, batch_size, workers
+def get_loader(args):
+    dataset = Dataset(args.img_dir, args.label_dir, args.preprocess_type, args.transform)
+    dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
+                            shuffle=args.shuffle_set, num_workers=args.workers,
+                            drop_last=args.drop_last)
     return dataloader
 
+
+'''
+preprocessor를 util로 보낼 것인가?
+'''
 
 # CT pre-processing
 def CT_preprocess(data, image_size):

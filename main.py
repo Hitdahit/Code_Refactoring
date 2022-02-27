@@ -3,7 +3,7 @@ import numpy as np
 import parser
 
 import torch
-from util_parameter import get_version_text, Version_Dictionary, parser
+from version_parser import get_version_text, Version_Dictionary, parser
 from train import *
 
 
@@ -17,7 +17,7 @@ args = Version_Dictionary(txt_lst)
 args = parser(args)
 
 if 'BC' in args.task_type:
-    binary_classification_train(args)
+    train_loss, train_metric, val_loss, val_metric = binary_classification_train(args)
 elif 'MC' in args.task_type:
     multiclass_classification_train(args)
 elif 'ML' in args.task_type:

@@ -11,6 +11,7 @@ from sklearn.metrics import accuracy_score
 
 '''
 binary
+BC_metric util.py로 가는 것은?
 '''
 def BC_metric(y, yhat):
     '''
@@ -118,11 +119,11 @@ def binary_classification_train(args):
         writer_val.add_scalar('accuracy', metic_epoch / dataset_count, epoch + 1)
 
         val_loss.append(np.mean(loss_epoch))
-        val_metric.append(metic_epoch / dataset_count)
+        val_metric.append(metric_epoch / dataset_count)
 
         # model, optimizer save all epoch
         torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
-       "./%s/model_epoch%d.pth.tar.gz" % (checkpoint_dir, epoch))
+       "./%s/model_epoch%d.pth.tar.gz" % (args.point_dir, epoch))
 
     writer_train.close()
     writer_val.close()
