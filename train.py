@@ -21,7 +21,7 @@ def BC_metric(y, yhat):
         yhat: B x 2
     output: 1 batch 중에서 맞춘 개수
     '''
-    yhat = argmax(yhat, dim=1)
+    yhat = torch.argmax(yhat, dim=1)
     metric = accuracy_score(y, yhat)
     
     return metric * len(y)
