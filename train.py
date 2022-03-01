@@ -7,7 +7,8 @@ import os # os.path.join 사용
 import numpy as np
 
 from sklearn.metrics import accuracy_score
-
+from data_loader import get_loader
+import util
 
 '''
 binary
@@ -85,7 +86,7 @@ def binary_classification_train(args):
 
         # Tensorboard save
         writer_train.add_scalar('loss', np.mean(loss_epoch), epoch + 1)
-        writer_train.add_scalar('accuracy', metic_epoch / dataset_count, epoch + 1)
+        writer_train.add_scalar('accuracy', metric_epoch / dataset_count, epoch + 1)
 
         train_loss.append(np.mean(loss_epoch)) # 1 epoch 마다 train loss 추가
         train_metric.append(metic_epoch / dataset_count) # 1 epoch 마다 train metric 추가
@@ -102,8 +103,8 @@ def binary_classification_train(args):
             dataset_count = 0
 
             for index, data in enumerate(val_dataloader):
-                x = data['image'].to(device)
-                y = data['label'].to(device)
+                x = data['image'].to(args.device)
+                y = data['label'].to(args.device)
 
                 yhat = model(x)
 
@@ -116,7 +117,7 @@ def binary_classification_train(args):
 
         # Tensorboard save
         writer_val.add_scalar('loss', np.mean(loss_epoch), epoch + 1)
-        writer_val.add_scalar('accuracy', metic_epoch / dataset_count, epoch + 1)
+        writer_val.add_scalar('accuracy', metric_epoch / dataset_count, epoch + 1)
 
         val_loss.append(np.mean(loss_epoch))
         val_metric.append(metric_epoch / dataset_count)
