@@ -15,16 +15,20 @@ binary
 BC_metric util.py로 가는 것은?
 '''
 def BC_metric(y, yhat):
-    '''
-    input
-        y: B x 1
-        yhat: B x 2
-    output: 1 batch 중에서 맞춘 개수
-    '''
-    yhat = torch.argmax(yhat, dim=1)
-    metric = accuracy_score(y, yhat)
+    cor = 0
+    yhat = torch.softmax(yhat, dim=1)
+    yhat[yhat>=0.5] = 1
+    yhat[yhat<0.5] = 0
     
-    return metric * len(y)
+    y = torch.argmax(y, dim=1)
+    yhat = torch.argmax(yhat, dim=1)
+    for i, j in zip(y, yhat):
+        if i==j:
+            cor = cor+1
+            
+    acc = cor/len(yhat)
+    
+    return acc
 
 def binary_classification_train(args):
     '''
@@ -47,7 +51,7 @@ def binary_classification_train(args):
     val_metric = []
     
     model = args.model
-    loss_function = args.loss
+    loss_function = args.loss()
     optimizer = args.optimizer
     model.to(args.device) # model이 GPU에서 돌아가도록 설정
 
@@ -68,10 +72,9 @@ def binary_classification_train(args):
 
             # forward
             yhat = model(x)
-
             loss = loss_function(yhat, y)
             metric = BC_metric(y, yhat)
-
+            
             # backward
             optimizer.zero_grad()
             loss.backward()

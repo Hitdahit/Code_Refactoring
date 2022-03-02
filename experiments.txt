@@ -39,8 +39,8 @@ scheduler = StepLR
 # optimizer, step_size, gamma=0.1, last_epoch = -1, verbose=False
 scheduler_params = 30, 0.1, -1, False
 
-augmentation_kind = HorizontalFlip, MotionBlur, OpticalDistortion, ToTensorV2
-augmentation_settings = 0.5 / 0.5 / 0.5 / None
+augmentation_kind = HorizontalFlip, OpticalDistortion, ToTensorV2
+augmentation_settings = 0.5 / 0.5 / 1
 
 ver 2
 # Hardware setting
