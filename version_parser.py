@@ -217,8 +217,8 @@ class Version_Dictionary:
         self.augmentation_settings = self._aug_parser(self.augmentation_settings)
         for idx, i in enumerate(self.augmentation_kind[:-1]):
             aug_list.append(getattr(A, i)(*self.augmentation_settings[idx]))
-        aug_list.append(getattr(A.pytorch, self.augmentation_kind[-1]))
-        self.augmentations = A.Compose(aug_list)
+        aug_list.append(getattr(A.pytorch.transforms, self.augmentation_kind[-1]))()
+        self.augmentation = A.Compose(aug_list)
 
         self.modality = self.modality   # TODO
         self.dimension = int(self.dimension) #TODO

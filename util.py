@@ -9,7 +9,9 @@ import pydicom
 preprocessor를 util로 보낼 것인가?
 '''
 def Endo_preprocess(data, image_size):
-    rgb_image = cv2.imread(data)
+    #rgb_image = cv2.imread(data)
+    img = pydicom.dcmread(data)
+    rgb_image = img.pixel_array
     rgb_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2RGB)
     if rgb_image.shape == (1920, 1080):
         rgb_image = rgb_image[680:-1, :]
@@ -18,7 +20,7 @@ def Endo_preprocess(data, image_size):
     rgb_image = cv2.resize(rgb_image, dsize=image_size)
 
     rgb_image = (rgb_image - np.min(rgb_image))/(np.max(rgb_image)-np.min(rgb_image))
-
+    rgb_image = np.array(rgb_image, dtype=np.float32)
     return rgb_image
 
 # CT pre-processing
