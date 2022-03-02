@@ -68,8 +68,8 @@ class VGG_Classifier(nn.Module):
         elif model_size == 19:
             self.pretrained_model = VGG.vgg19_bn(pretrained = pretrained, num_classes = n_classes)
         
-            if pretrained is not True:
-                self.pretrained_model.avgpool = nn.AdaptiveAvgPool2d(1)
+            #if pretrained is not True:
+            #    self.pretrained_model.avgpool = nn.AdaptiveAvgPool2d(1)
                 
     def forward(self, imgs):
         output = self.pretrained_model(imgs)
