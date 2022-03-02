@@ -21,6 +21,8 @@ dimension = 2
 checkpoint_dir = ./ckpt
 logs_dir = ./logs
 data_dir = ./data
+shuffle = True
+drop_last = True
 
 # model setting
 model = VGG_Classifier

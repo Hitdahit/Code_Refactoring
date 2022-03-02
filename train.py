@@ -21,7 +21,7 @@ def BC_metric(y, yhat):
         yhat: B x 2
     output: 1 batch 중에서 맞춘 개수
     '''
-    yhat = argmax(yhat, dim=1)
+    yhat = torch.argmax(yhat, dim=1)
     metric = accuracy_score(y, yhat)
     
     return metric * len(y)
@@ -33,12 +33,12 @@ def binary_classification_train(args):
     output: train_loss, train_metric, val_loss, val_metric
     '''
     # data loading
-    train_dataloader = get_loader(args)
-    val_dataloader = get_loader(args)
+    train_dataloader = get_loader(args, mode='train')
+    val_dataloader = get_loader(args, mode='valid')
     
     # 텐서보드를 사용하기 위한 SummaryWriter 설정, log 파일을 저장할 경로
-    writer_train = SummaryWriter(logs_dir=os.path.join(args.log_dir, 'train'))
-    writer_val = SummaryWriter(logs_dir=os.path.join(args.log_dir, 'val'))
+    writer_train = SummaryWriter(log_dir=os.path.join(args.logs_dir, 'train'))
+    writer_val = SummaryWriter(log_dir=os.path.join(args.logs_dir, 'val'))
 
     # epoch 마다 하나씩 추가될 list들
     train_loss = []
