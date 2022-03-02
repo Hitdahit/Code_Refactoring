@@ -2,7 +2,7 @@ from statistics import mode
 import torch
 import torch.nn as nn
 from model import ResNet, VGG, DenseNet
-from efficientnet_pytorch import EfficientNet
+#from efficientnet_pytorch import EfficientNet
 
 
 # ResNet  18, 34, 50, 101, 152
