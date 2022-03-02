@@ -1,31 +1,44 @@
 ver 1
 # Hardware setting
-GPU_number = 
-GPU_id = 
-num_worker = 
+GPU_number = 0
+GPU_id = 0
+num_worker = 0
 
 # train setting
 seed = 42
 batch_size = 4
-img_size = 
-epochs = 
+img_size = 512
+epochs = 100
 learning_rate = 1e-3
 
 # modality
-modality = CT, XR, MR, EN, SO
-dimiension = 2, 3
-is_time_series = True, False
+modality = Endo
+dimension = 2
+
+# is_time_series = True, False
 
 # checkpoint, logs
-checkpoint_dir =
-logs_dir =
+checkpoint_dir = ./ckpt
+logs_dir = ./logs
+data_dir = ./data
 
 # model setting
-augmentation = 
-model = vgg
-task_type= binary
-optimizer =
-scheduler = 
+model = VGG_Classifier
+model_size = 19
+n_classes = 2
+task_type= BC
+loss = BCEWithLogitsLoss
+
+optimizer = SGD
+# lr, momentum, dampening, weight_decay, nesterov
+optimizer_params = 1e-3, 0, 0, 0, False
+
+scheduler = StepLR
+# optimizer, step_size, gamma=0.1, last_epoch = -1, verbose=False
+scheduler_params = 30, 0.1, -1, False
+
+augmentation_kind = HorizontalFlip, MotionBlur, OpticalDistortion
+augmentation_settings = 0.5 / 0.5 / 0.5
 
 ver 2
 # Hardware setting
@@ -37,7 +50,7 @@ num_worker = 100
 seed = 42
 batch_size = 4
 img_size = 512
-epochs = 1000000
+epochs = 100
 learning_rate = 1e-3
 
 # modality
