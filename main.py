@@ -3,18 +3,20 @@ import numpy as np
 import parser
 
 import torch
-from version_parser import get_version_text, Version_Dictionary, parser
+from version_parser import get_version_text, Version_Dictionary
 from train import *
+import argparse
 
 
-'''
-parser 구현! txt 파일경로와 version번호 받아오는 거
-'''
-txt_lst = get_version_text(version, path)
+setting_getter = argparse.ArgumentParser(description='Put your experiment file and version number')
+setting_getter.add_argument('--text_path', '-t', type=str, help='your experiment file')
+setting_getter.add_argument('--version', '-v', type=int, help='version number to experiment')
 
-args = Version_Dictionary(txt_lst)
+setting_getter = setting_getter.parse_args()
+txt_lst = get_version_text(setting_getter.version, setting_getter.text_path)
 
-args = parser(args)
+args = Version_Dictionary(setting_getter.version, txt_lst)
+args.set_value()
 
 if 'BC' in args.task_type:
     train_loss, train_metric, val_loss, val_metric = binary_classification_train(args)
