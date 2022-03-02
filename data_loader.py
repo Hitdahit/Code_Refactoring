@@ -20,9 +20,9 @@ class Dataset(Dataset):
         get label from path
         '''
         label = [[0, 1], [1, 0]]
-        imgs = [sorted(os.listdir(os.path.join(self.data_dir, i))) for i in self.classes]
-        labels = np.array([label[idx] for idx, i in enumerate(self.imgs) for j in i], dtype=np.float32)
-        imgs = [os.path.join(self.data_dir, self.classes[idx], j) for idx, i in enumerate(self.imgs) for j in i]
+        imgs = [sorted(os.listdir(os.path.join(self.img_dir, i))) for i in self.classes]
+        labels = np.array([label[idx] for idx, i in enumerate(imgs) for j in i], dtype=np.float32)
+        imgs = [os.path.join(self.img_dir, self.classes[idx], j) for idx, i in enumerate(imgs) for j in i]
         
         return imgs, labels
     def _MC_labeler(self):
@@ -36,18 +36,18 @@ class Dataset(Dataset):
         '''
         pass
 
-    def __init__(self, img_dir, image_size, modality, transform):
+    def __init__(self, img_dir, mode, image_size, modality, transform):
         '''
         data's root dir
         '''
-        self.img_dir = img_dir
+        self.img_dir = os.path.join(img_dir, mode)
         self.image_size = image_size # Get image_size
         self.modality = modality        
         self.transform = transform # Get augmentation
 
         self.classes =sorted( os.listdir(self.img_dir))
         
-        imgs, labels = _BC_labeler()
+        imgs, labels = self._BC_labeler()
         self.imgs = imgs
         self.labels = labels      
 
@@ -80,10 +80,10 @@ class Dataset(Dataset):
 
 # get loader from Dataset as batch size
 # img_dir, label_dir, preprocess_type, transform, batch_size, workers
-def get_loader(args):
-    dataset = Dataset(args.data_dir, args.img_size, args.modality, args.augmentation)
+def get_loader(args, mode='train'):
+    dataset = Dataset(args.data_dir, mode, args.img_size, args.modality, args.augmentation)
     dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
-                            shuffle=args.shuffle_set, num_workers=args.workers,
+                            shuffle=args.shuffle, num_workers=args.num_worker,
                             drop_last=args.drop_last)
     return dataloader
 

@@ -73,6 +73,8 @@ class Version_Dictionary:
         self.checkpoint_dir = dic['checkpoint_dir']
         self.logs_dir = dic['logs_dir']
         self.data_dir = dic['data_dir']
+        self.shuffle = dic['shuffle']
+        self.drop_last = dic['drop_last']
         
         self.model = dic['model']
         self.model_size = dic['model_size']
@@ -138,6 +140,7 @@ class Version_Dictionary:
         self.img_size = (int(self.img_size),int(self.img_size))
         self.epochs = int(self.epochs)
         self.learning_rate = float(self.learning_rate)
+        self.num_worker  = int(self.num_worker)
 
         '''
         eps (float) -> for Adam family
@@ -221,8 +224,10 @@ class Version_Dictionary:
         self.dimension = int(self.dimension) #TODO
 
         self.ckpt_dir = self.checkpoint_dir
-        self.log_dir = self.logs_dir
+        self.logs_dir = self.logs_dir
         self.data_dir = self.data_dir
+        self.shuffle = self.shuffle == True
+        self.drop_last = self.drop_last==True
 
         self.task_type = self.task_type
         self.epochs = self.epochs
