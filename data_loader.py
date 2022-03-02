@@ -81,7 +81,7 @@ class Dataset(Dataset):
 # get loader from Dataset as batch size
 # img_dir, label_dir, preprocess_type, transform, batch_size, workers
 def get_loader(args):
-    dataset = Dataset(args.img_dir, args.image_size, args.modality, args.transform)
+    dataset = Dataset(args.data_dir, args.img_size, args.modality, args.augmentation)
     dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
                             shuffle=args.shuffle_set, num_workers=args.workers,
                             drop_last=args.drop_last)
