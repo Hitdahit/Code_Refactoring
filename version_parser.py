@@ -20,7 +20,7 @@ def get_version_text(version, path):
             continue
         if 'ver' in i:
             versions.append(idx)
-    print(versions)
+    
     # Get selected version block and append to selected_version_list
     selected_version_list=[]
     for idx, i in enumerate(versions):        
@@ -31,7 +31,7 @@ def get_version_text(version, path):
                 end = versions[idx+1]
             else:
                 end = len(lines)-1
-            print(end)
+    
             for j in range(i, end):
                 selected_version_list.append(lines[j].strip())    
                 
@@ -121,6 +121,8 @@ class Version_Dictionary:
                     tmp_set.append(float(j))
                 elif 'True' in j or 'False' in j:
                     tmp_set.append(j == 'True')
+                elif 'None' in j:
+                    tmp_set.append(None)
                 else:
                     tmp_set.append(int(j))
             tmp.append(tuple(tmp_set))
@@ -210,9 +212,9 @@ class Version_Dictionary:
         aug_list = []
         self.augmentation_kind = self.augmentation_kind.split(',')
         self.augmentation_settings = self._aug_parser(self.augmentation_settings)
-        for idx, i in enumerate(self.augmentation_kind):
+        for idx, i in enumerate(self.augmentation_kind[:-1]):
             aug_list.append(getattr(A, i)(*self.augmentation_settings[idx]))
-            
+        aug_list.append(getattr(A.pytorch, self.augmentation_kind[-1]))
         self.augmentations = A.Compose(aug_list)
 
         self.modality = self.modality   # TODO
