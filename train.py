@@ -10,6 +10,8 @@ from sklearn.metrics import accuracy_score
 from data_loader import get_loader
 import util
 
+import wandb
+
 '''
 binary
 BC_metric util.py로 가는 것은?
@@ -92,7 +94,7 @@ def binary_classification_train(args):
         writer_train.add_scalar('accuracy', metric_epoch / dataset_count, epoch + 1)
 
         train_loss.append(np.mean(loss_epoch)) # 1 epoch 마다 train loss 추가
-        train_metric.append(metic_epoch / dataset_count) # 1 epoch 마다 train metric 추가
+        train_metric.append(metric_epoch / dataset_count) # 1 epoch 마다 train metric 추가
 
         '''
         validation loop
@@ -127,7 +129,7 @@ def binary_classification_train(args):
 
         # model, optimizer save all epoch
         torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
-       "./%s/model_epoch%d.pth.tar.gz" % (args.point_dir, epoch))
+       "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
 
     writer_train.close()
     writer_val.close()
