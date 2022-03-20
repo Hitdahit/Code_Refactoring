@@ -44,6 +44,15 @@ The main features of this snippets are:
 ​	iii. How to evaluate trained model 
 
 ### 3. Models
+We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and each models have different number of layers. You can choose the architecture based on your dataset.
+
+    i. ResNet : (ResNet uses residual connections between the layers to solve gradient vanishing problem in deep neural networks. - 이런 소개 글 필요?) We have implemented 5 different architectures of ResNet such as ResNet18, ResNet34, ResNet50, Resnet101, ResNet152. 
+
+    ii. VGG
+
+    iii. DenseNet
+
+    iv. EfficientNet
 
 ### 4. Supporting Modalities
 
