@@ -47,14 +47,12 @@ def CT_preprocess(data, image_size):
 
     pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (2.0**dicom_image.BitsStored-1.0) # CT image has 8, 12, 16bits. It must be normalized.
 
-    image_min = np.min(pixel_array_image)
-    image_max = np.max(pixel_array_image)
+    image_min = 0.0
+    image_max = 1.0
 
     # If image pixel is over max value or under min value, threshold to max and min
     pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
     pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
-
-    pixel_array_image = (pixel_array_image-image_min) / (image_max-image_min) # Normalize from 0 to 1
 
     # If dicom image has MONOCHROME1, image is converted.
     if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
@@ -80,14 +78,16 @@ def Xray_preprocess_minmax(data, image_size):
 
     pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (2.0**dicom_image.BitsStored-1.0) # X-ray image has 8, 12, 16bits. It must be normalized.
 
-    image_min = np.min(pixel_array_image)
-    image_max = np.max(pixel_array_image)
+    image_min = 0.0
+    image_max = 1.0
 
     # If image pixel is over max value or under min value, threshold to max and min
     pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
     pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
 
-    pixel_array_image = (pixel_array_image-image_min) / (image_max-image_min) # Normalize from 0 to 1
+    # If dicom image has MONOCHROME1, image is converted.
+    if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
+        pixel_array_image = 1.0 - pixel_array_image
 
     return pixel_array_image # output : 0.0 ~ 1.0
 
@@ -112,8 +112,15 @@ def Xray_preprocess_percentile(data, image_size):
     pixel_array_image -= np.min(pixel_array_image) # Start pixel value from 0
     pixel_array_image /= np.percentile(pixel_array_image, 99) # Normalize from 0 to 1
 
-    # If image pixel is over 1.0 or under 0.0, threshold to 1.0 and 0.0
-    pixel_array_image[np.where(pixel_array_image < 0.0)] = 0.0
-    pixel_array_image[np.where(pixel_array_image > 1.0)] = 1.0
+    image_min = 0.0
+    image_max = 1.0
+
+    # If image pixel is over max value or under min value, threshold to max and min
+    pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
+    pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
+
+    # If dicom image has MONOCHROME1, image is converted.
+    if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
+        pixel_array_image = 1.0 - pixel_array_image
 
     return pixel_array_image # output : 0.0 ~ 1.0
