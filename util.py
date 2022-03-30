@@ -24,7 +24,7 @@ def Endo_preprocess(data, image_size):
     return rgb_image
 
 # CT pre-processing
-def CT_preprocess(data, image_size):
+def CT_preprocess(data, image_size, window_width=None, window_level=None):
     dicom_image = pydicom.read_file(data) # Read dicom file
     pixel_array_image = dicom_image.pixel_array.astype(np.float32) # Change dicom image to array
 
@@ -42,17 +42,26 @@ def CT_preprocess(data, image_size):
     intercept = dicom_image.RescaleIntercept
     slope = dicom_image.RescaleSlope
 
-    if ('RescaleSlope' in dicom_image) and ('RescaleIntercept' in dicom_image):
-        pixel_array_image = pixel_array_image * slope + intercept
+    pixel_array_image = pixel_array_image * slope + intercept
 
-    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (2.0**dicom_image.BitsStored-1.0) # CT image has 8, 12, 16bits. It must be normalized.
+    if not window_width == None and window_level == None:
+        image_min = window_level - (window_width / 2.0)
+        image_max = window_level + (window_width / 2.0)
 
-    image_min = 0.0
-    image_max = 1.0
+        # If image pixel is over max value or under min value, threshold to max and min
+        pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
+        pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
 
-    # If image pixel is over max value or under min value, threshold to max and min
-    pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
-    pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
+        pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
+    else:
+        image_min = -1024.0
+        image_max = 3071.0
+
+        # If image pixel is over max value or under min value, threshold to max and min
+        pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
+        pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
+
+        pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
 
     # If dicom image has MONOCHROME1, image is converted.
     if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
