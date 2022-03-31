@@ -63,7 +63,15 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and eac
 ​	iii. MR slices
 
 ​	iv. Gastro Endoscopy
-
+	소화기 내시경 동영상에서 추출한 '이미지' 기반으로 학습합니다.
+	- Preprocessing: cropping 
+    	- 내시경 동영상에서 바로 추출한 영상은 640*480 혹은 1920*1080으로 이 경우엔 환자 정보들이 영상에 그대로 남은 상태입니다.
+    	- 그러므로 cropping을 진행합니다.
+  	- Image Normalization: 
+    	- min_max_scaling 
+    	- (TBD)
+  	- 
+	
 ​	v. ENT
     ENT는 수술장 비디오를 이용해 연구 하는 팀으로 3channel(RGB) Video Data를 사용합니다. 
 ​    Data Format은 Video를 Raw Frame(.png)으로 나눈 후 Clip 단위로 데이터를 구성하거나, MP4 Format을 사용합니다.
