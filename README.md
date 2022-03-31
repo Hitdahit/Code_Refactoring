@@ -64,7 +64,20 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and eac
 
 ​	iv. Gastro Endoscopy
 
-​	v. ENT 
+​	v. ENT
+    ENT는 수술장 비디오를 이용해 연구 하는 팀으로 3channel(RGB) Video Data를 사용합니다. 
+​    Data Format은 Video를 Raw Frame(.png)으로 나눈 후 Clip 단위로 데이터를 구성하거나, MP4 Format을 사용합니다.
+​    기본적인 전처리는 ImageNet 데이터 전처리와 동일합니다. 
+
+    - Image Normalize : mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375] or image / 255.0
+    
+    - Image Resize : (1920 * 1080) -> (864 * 480) 
+
+    - Frame Interval : 1 (변경 가능)
+
+    - Clip Length : 8 frames(Video Segmenation), 32 frames(Video Recognition) 
+
+    - Format Shape : N(Batch), C(Channels), T(Times), H(Height), W(Weidth)
 
 ** Note that supporting models in this repository are designed for 2 dimensional images.
 
@@ -78,11 +91,5 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and eac
 
 ### 6. How to Contribute 
 
-
-
-
-
-
-
-
+​        
 
