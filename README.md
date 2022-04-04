@@ -46,13 +46,17 @@ The main features of this snippets are:
 ### 3. Models
 We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and each models have different number of layers. You can choose the architecture based on your dataset.
 
-    i. ResNet : (ResNet uses residual connections between the layers to solve gradient vanishing problem in deep neural networks. - 이런 소개 글 필요?) We have implemented 5 different architectures of ResNet such as ResNet18, ResNet34, ResNet50, Resnet101, ResNet152. 
+    i. ResNet : We have implemented 5 different architectures of ResNet such as ResNet18, ResNet34, ResNet50, Resnet101, ResNet152. 
 
-    ii. VGG
+    ii. VGG : We have implemented 4 different architectures of VGG such as VGG11, VGG13, VGG16, VGG19 with batch normalization.
 
-    iii. DenseNet
+    iii. DenseNet : We have implemented 3 different architectures of DenseNet such as DenseNet121, DenseNet169, DenseNet201.
 
-    iv. EfficientNet
+    iv. EfficientNet : 
+
+	v. SENet : SE Block..?
+
+	vi. GoogLeNet : 
 
 ### 4. Supporting Modalities
 
