@@ -23,13 +23,18 @@ The main features of this snippets are:
 
 ### 1. Installation
 
-​	i. How to Download
+​	i. Fork this repository to your private Repository
+		![캡처](/imgs/fork.png)
 
-​	ii. How to setup your environment
+​	ii. clone your repository to your workspace
+		
+		git clone {your repository url}
 
-​		ii-1. Anaconda
+   iii. Setup your environment with configuration file
 
-​		ii-2. Docker
+​		iii-1. Anaconda
+
+​		iii-2. Docker
 
 ​	iii. Sanity Check
 
@@ -64,7 +69,8 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and eac
 
 ​	iv. Gastro Endoscopy
 	소화기 내시경 동영상에서 추출한 '이미지' 기반으로 학습합니다.
-	- Preprocessing: cropping 
+
+	- Preprocessing: cropping
     	- 내시경 동영상에서 바로 추출한 영상은 640*480 혹은 1920*1080으로 이 경우엔 환자 정보들이 영상에 그대로 남은 상태입니다.
     	- 그러므로 cropping을 진행합니다.
   	- Image Normalization: 
