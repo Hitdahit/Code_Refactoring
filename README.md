@@ -32,17 +32,20 @@ The main features of this snippets are:
 
    iii. Setup your environment with configuration file
 
-​		iii-1. Anaconda
+​		
+	   iii-1. Anaconda
 
 ​		iii-2. Docker
 
-​	iii. Sanity Check
+​	iv. version changing (for your ablation study)
+	![캡처](/imgs/for_ablation.png)
+
 
 ### 2. Examples
 
 ​	i. How to start training
 
-​		/python train.py --t {txt files} --v{version number}
+​		python train.py --t {txt files} --v{version number}
 
 ​	ii. 
 

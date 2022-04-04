@@ -16,11 +16,11 @@ import wandb
 binary
 BC_metric util.py로 가는 것은?
 '''
-def BC_metric(y, yhat):
+def BC_metric(y, yhat, thresh=0.5):
     cor = 0
     yhat = torch.softmax(yhat, dim=1)
-    yhat[yhat>=0.5] = 1
-    yhat[yhat<0.5] = 0
+    yhat[yhat>=thresh] = 1
+    yhat[yhat<thresh] = 0
     
     y = torch.argmax(y, dim=1)
     yhat = torch.argmax(yhat, dim=1)
@@ -75,7 +75,7 @@ def binary_classification_train(args):
             # forward
             yhat = model(x)
             loss = loss_function(yhat, y)
-            metric = BC_metric(y, yhat)
+            metric = BC_metric(y, yhat, args.logit_thresh)
             
             # backward
             optimizer.zero_grad()
@@ -114,7 +114,7 @@ def binary_classification_train(args):
                 yhat = model(x)
 
                 loss = loss_function(yhat, y)
-                metric = BC_metric(y, yhat)
+                metric = BC_metric(y, yhat, args.logit_thresh)
 
                 loss_epoch.append(loss.detach().cpu().numpy())
                 metric_epoch += metric
@@ -126,6 +126,13 @@ def binary_classification_train(args):
 
         val_loss.append(np.mean(loss_epoch))
         val_metric.append(metric_epoch / dataset_count)
+
+        if args.epochs/3 <epoch:
+            if metric_epoch /dataset_count < 0.5:   # train/ val 쪼개야 함
+                wandb.alert(
+                    title='Low Validation ACC',
+                    text=f'Accuracy {metric_epoch /dataset_count} is below the acceptable threshold {args.logit_thresh}'
+                )
 
         # model, optimizer save all epoch
         torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
