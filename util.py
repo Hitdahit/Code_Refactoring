@@ -64,7 +64,8 @@ def CT_preprocess(data, image_size, window_width=None, window_level=None): # (in
 
         pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
 
-    # If dicom image has MONOCHROME1, image is converted.
+    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
+    # In other words, it is conversion version of image that we know conventionally. So it has to be converted
     if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
         pixel_array_image = 1.0 - pixel_array_image
 
@@ -88,7 +89,8 @@ def Xray_preprocess_minmax(data, image_size):
 
     pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
 
-    # If dicom image has MONOCHROME1, min value of image is white pixel. So it has to be converted.
+    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
+    # In other words, it is conversion version of image that we know conventionally. So it has to be converted
     if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
         pixel_array_image = 1.0 - pixel_array_image
 
@@ -111,17 +113,11 @@ def Xray_preprocess_percentile(data, image_size):
         pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
 
     # pixel value is divided by Percentile 99% and normalized from 0 to 1
-    pixel_array_image -= np.min(pixel_array_image) # Start pixel value from 0
+    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
     pixel_array_image /= np.percentile(pixel_array_image, 99)
 
-    image_min = 0.0
-    image_max = 1.0
-
-    # If image pixel is over max value or under min value, threshold to max and min
-    pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
-    pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
-
-    # If dicom image has MONOCHROME1, min value of image is white pixel. So it has to be converted.
+    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
+    # In other words, it is conversion version of image that we know conventionally. So it has to be converted
     if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
         pixel_array_image = 1.0 - pixel_array_image
 
