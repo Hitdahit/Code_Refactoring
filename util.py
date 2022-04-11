@@ -24,7 +24,7 @@ def Endo_preprocess(data, image_size):
     return rgb_image
 
 # CT pre-processing
-def CT_preprocess(data, image_size):
+def CT_preprocess(data, image_size, window_width=None, window_level=None): # (input data, image size which you want to resize, window width which you want, window level which you want)
     dicom_image = pydicom.read_file(data) # Read dicom file
     pixel_array_image = dicom_image.pixel_array.astype(np.float32) # Change dicom image to array
 
@@ -38,25 +38,34 @@ def CT_preprocess(data, image_size):
     if pixel_array_image.shape != (image_size, image_size):
         pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
 
-    # CT image has RescaleIntercept and Rescale Slope. It is mandantory pre-process task.
+    # CT image has Rescale Intercept and Rescale Slope. It is mandantory pre-process task.
     intercept = dicom_image.RescaleIntercept
     slope = dicom_image.RescaleSlope
 
-    if ('RescaleSlope' in dicom_image) and ('RescaleIntercept' in dicom_image):
-        pixel_array_image = pixel_array_image * slope + intercept
+    pixel_array_image = pixel_array_image * slope + intercept
 
-    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (2.0**dicom_image.BitsStored-1.0) # CT image has 8, 12, 16bits. It must be normalized.
+    # If you give a specific value in window_width and window_level, it will be windowed by value of those.
+    if not window_width == None and window_level == None:
+        image_min = window_level - (window_width / 2.0)
+        image_max = window_level + (window_width / 2.0)
 
-    image_min = np.min(pixel_array_image)
-    image_max = np.max(pixel_array_image)
+        # If image pixel is over max value or under min value, threshold to max and min
+        pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
+        pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
 
-    # If image pixel is over max value or under min value, threshold to max and min
-    pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
-    pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
+        pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
+    else:
+        image_min = -1024.0
+        image_max = 3071.0
 
-    pixel_array_image = (pixel_array_image-image_min) / (image_max-image_min) # Normalize from 0 to 1
+        # If image pixel is over max value or under min value, threshold to max and min
+        pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
+        pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
 
-    # If dicom image has MONOCHROME1, image is converted.
+        pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
+
+    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
+    # In other words, it is conversion version of image that we know conventionally. So it has to be converted
     if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
         pixel_array_image = 1.0 - pixel_array_image
 
@@ -78,16 +87,12 @@ def Xray_preprocess_minmax(data, image_size):
     if pixel_array_image.shape != (image_size, image_size):
         pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
 
-    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (2.0**dicom_image.BitsStored-1.0) # X-ray image has 8, 12, 16bits. It must be normalized.
+    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
 
-    image_min = np.min(pixel_array_image)
-    image_max = np.max(pixel_array_image)
-
-    # If image pixel is over max value or under min value, threshold to max and min
-    pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
-    pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
-
-    pixel_array_image = (pixel_array_image-image_min) / (image_max-image_min) # Normalize from 0 to 1
+    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
+    # In other words, it is conversion version of image that we know conventionally. So it has to be converted
+    if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
+        pixel_array_image = 1.0 - pixel_array_image
 
     return pixel_array_image # output : 0.0 ~ 1.0
 
@@ -107,13 +112,13 @@ def Xray_preprocess_percentile(data, image_size):
     if pixel_array_image.shape != (image_size, image_size):
         pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
 
-    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (2.0**dicom_image.BitsStored-1.0) # X-ray image has 8, 12, 16bits. It must be normalized.
+    # pixel value is divided by Percentile 99% and normalized from 0 to 1
+    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
+    pixel_array_image /= np.percentile(pixel_array_image, 99)
 
-    pixel_array_image -= np.min(pixel_array_image) # Start pixel value from 0
-    pixel_array_image /= np.percentile(pixel_array_image, 99) # Normalize from 0 to 1
-
-    # If image pixel is over 1.0 or under 0.0, threshold to 1.0 and 0.0
-    pixel_array_image[np.where(pixel_array_image < 0.0)] = 0.0
-    pixel_array_image[np.where(pixel_array_image > 1.0)] = 1.0
+    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
+    # In other words, it is conversion version of image that we know conventionally. So it has to be converted
+    if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
+        pixel_array_image = 1.0 - pixel_array_image
 
     return pixel_array_image # output : 0.0 ~ 1.0
