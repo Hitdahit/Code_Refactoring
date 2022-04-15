@@ -1,7 +1,6 @@
 import torch 
 import torch.nn as nn # loss function, nn.Module
 import torch.optim as optim # optimizer 사용
-from torch.utils.tensorboard import SummaryWriter # 텐서보드 사용
 
 import os # os.path.join 사용
 import numpy as np
@@ -41,10 +40,6 @@ def binary_classification_train(args):
     # data loading
     train_dataloader = get_loader(args, mode='train')
     val_dataloader = get_loader(args, mode='valid')
-    
-    # 텐서보드를 사용하기 위한 SummaryWriter 설정, log 파일을 저장할 경로
-    writer_train = SummaryWriter(log_dir=os.path.join(args.logs_dir, 'train'))
-    writer_val = SummaryWriter(log_dir=os.path.join(args.logs_dir, 'val'))
 
     # epoch 마다 하나씩 추가될 list들
     train_loss = []
@@ -88,11 +83,7 @@ def binary_classification_train(args):
             loss_epoch.append(loss.detach().cpu().numpy())
             metric_epoch += metric
             dataset_count += x.shape[0]
-
-        # Tensorboard save
-        writer_train.add_scalar('loss', np.mean(loss_epoch), epoch + 1)
-        writer_train.add_scalar('accuracy', metric_epoch / dataset_count, epoch + 1)
-
+            
         train_loss.append(np.mean(loss_epoch)) # 1 epoch 마다 train loss 추가
         train_metric.append(metric_epoch / dataset_count) # 1 epoch 마다 train metric 추가
 
@@ -120,26 +111,19 @@ def binary_classification_train(args):
                 metric_epoch += metric
                 dataset_count += x.shape[0]
 
-        # Tensorboard save
-        writer_val.add_scalar('loss', np.mean(loss_epoch), epoch + 1)
-        writer_val.add_scalar('accuracy', metric_epoch / dataset_count, epoch + 1)
-
         val_loss.append(np.mean(loss_epoch))
         val_metric.append(metric_epoch / dataset_count)
 
         if args.epochs/3 <epoch:
-            if metric_epoch /dataset_count < 0.5:   # train/ val 쪼개야 함
+            if val_metric[-1] < 0.5:   # train/ val 쪼개야 함
                 wandb.alert(
                     title='Low Validation ACC',
-                    text=f'Accuracy {metric_epoch /dataset_count} is below the acceptable threshold {args.logit_thresh}'
+                    text=f'Accuracy {val_metric[-1]} is below the acceptable threshold {args.logit_thresh}'
                 )
 
         # model, optimizer save all epoch
         torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
        "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
-
-    writer_train.close()
-    writer_val.close()
 
     return train_loss, train_metric, val_loss, val_metric
 
