@@ -45,7 +45,7 @@ class CT_Dataset(Dataset):
         self.image_size = image_size # Get image_size    
         self.window_width = window_width # Get window_width
         self.window_level = window_level # Get window_level
-        self.normalization = normalization
+        self.normalization = normalization # Get normalization method
         self.transform = transform # Get augmentation
 
         self.classes = sorted(os.listdir(self.img_dir))
@@ -58,7 +58,7 @@ class CT_Dataset(Dataset):
         return len(self.imgs)
     
     def __getitem__(self, idx):
-        img = self.imgs[idx] 
+        img = self.imgs[idx]
         label = self.labels[idx]
         image_size = self.image_size # Get image_size
         window_width = self.window_width # Get window_width
@@ -77,7 +77,7 @@ class CT_Dataset(Dataset):
 # img_dir, label_dir, preprocess_type, transform, batch_size, workers
 def get_loader(args, modality, mode='train'):
     if modality == 'CT':
-        dataset = CT_Dataset(args.data_dir, mode, args.img_size, args.modality, args.augmentation)
+        dataset = CT_Dataset(args.data_dir, mode, args.img_size, args.window_width, args.window_level, args.normalization, args.augmentation)
         dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
                                 shuffle=args.shuffle, num_workers=args.num_worker,
                                 drop_last=args.drop_last)

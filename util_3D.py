@@ -17,7 +17,7 @@ def CT_preprocess(data, image_size, window_width=None, window_level=None, normal
     if nifti_np_array == 0:
         print('Data is empty. Data needs to be non-empty')
 
-    # Resize data
+    # Resize data e.g. (256,256,128) -> (512,512,256)
     if nifti_np_array.shape != (image_size, image_size, image_size):
         nifti_np_array = resampling(nifti_np_array, image_size)
 
@@ -36,10 +36,15 @@ def CT_preprocess(data, image_size, window_width=None, window_level=None, normal
     return nifti_np_array
 
 
+def patch():
+    '''
+    will be updated...
+    '''
+
 def resampling(image, image_size):
     scale1 = image_size / image[:,0,0].shape
     scale2 = image_size / image[0,:,0].shape
-    scale3 = image_size / image[0,0,:].shape
+    scale3 = image_size / image[0,0,:].shape / 2
 
     scale_list = [scale1, scale2, scale3]
     image = zoom(image, scale_list, order=0)
