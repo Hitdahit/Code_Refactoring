@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import nibabel as nib
 
-
+from scipy.ndimage import zoom
 '''
 3D preprocessor도 util로 따로
 '''
@@ -16,6 +16,10 @@ def CT_preprocess(data, image_size, window_width=None, window_level=None, normal
     # Alarm that data is empty.
     if nifti_np_array == 0:
         print('Data is empty. Data needs to be non-empty')
+
+    # Resize data
+    if nifti_np_array.shape != (image_size, image_size, image_size):
+        nifti_np_array = resampling(nifti_np_array, image_size)
 
     # CT image has Rescale Intercept and Rescale Slope. It is mandantory pre-process task.
     intercept = nifti_file.dataobj.inter
@@ -31,6 +35,17 @@ def CT_preprocess(data, image_size, window_width=None, window_level=None, normal
 
     return nifti_np_array
 
+
+def resampling(image, image_size):
+    scale1 = image_size / image[:,0,0].shape
+    scale2 = image_size / image[0,:,0].shape
+    scale3 = image_size / image[0,0,:].shape
+
+    scale_list = [scale1, scale2, scale3]
+    image = zoom(image, scale_list, order=0)
+    return image
+
+
 def windowing(image, window_width=None, window_level=None):
     if not window_width == None and window_level == None:
         image_min = window_level - (window_width / 2.0)
@@ -45,6 +60,7 @@ def windowing(image, window_width=None, window_level=None):
         # If image pixel is over max value or under min value, threshold to max and min
         image = np.clip(image, image_min, image_max)
     return image
+
 
 def normalize_intensity(image, normalization='mean'):
     if normalization == 'mean':
