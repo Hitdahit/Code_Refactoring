@@ -148,8 +148,12 @@ def binary_classification_train(args):
                 )
 
         # model, optimizer save all epoch
-        torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'scaler':  scaler.state_dict()},
-       "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+        if use_amp:
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'scaler':  scaler.state_dict()},
+           "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+        else:        
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
+           "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
 
     writer_train.close()
     writer_val.close()
@@ -296,8 +300,13 @@ def multilabel_classification_train(args):
         
         
         # model, optimizer save all epoch
-        torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'scaler':  scaler.state_dict()},
-       "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+        if use_amp:
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'scaler':  scaler.state_dict()},
+           "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+        else:        
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
+           "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+
         
     writer_train.close()
     writer_val.close()
@@ -431,8 +440,13 @@ def multiclass_classification_train(args):
         val_metric.append(metric_epoch / dataset_count)
         
         # model, optimizer save all epoch
-        torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
-       "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+        if use_amp:
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'scaler':  scaler.state_dict()},
+           "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+        else:        
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict()},
+           "./%s/model_epoch%d.pth.tar.gz" % (args.checkpoint_dir, epoch))
+
         
     writer_train.close()
     writer_val.close()
