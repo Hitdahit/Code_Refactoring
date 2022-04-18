@@ -92,6 +92,11 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and eac
 	Note that CT slices dicom image has 8,12,16 bits.
 
 ​	iii. MR slices
+	MR images are obtained in 3D. So we need two processes to get 2D slices.
+	1. Resampling
+		- Slice thickness may vary depending on the devices and sequences. To normalize slice thickness, it's good to match voxel spacing. We use simple ITK library to resample images.
+	2. Slicing
+		- After resample 3D images, we slice 3D images to 2D images along the z-axis. When we slice 3D images and save 2D images, we normalize(minmax scaling), convert datatype to uint8 and resize images.
 
 ​	iv. Gastro Endoscopy
 	소화기 내시경 동영상에서 추출한 '이미지' 기반으로 학습합니다.
