@@ -40,6 +40,7 @@ The main features of this snippets are:
 		---------------
 		Dockerfile.ts
 		---------------
+		jkim test
 		FROM tensorflow/tensorflow:latest-gpu
 		RUN apt-get update && apt-get install -y apt-utils sudo vim libgl1-mesa-glx libgdcm-tools python3-pip 
 		RUN apt-get update --fix-missing
