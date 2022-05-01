@@ -1,4 +1,3 @@
-from code import InteractiveInterpreter
 import os
 import cv2
 import numpy as np
@@ -17,9 +16,9 @@ def CT_preprocess(data, image_size, window_width=None, window_level=None, normal
     if nifti_np_array == 0:
         print('Data is empty. Data needs to be non-empty')
 
-    # Resize data e.g. (256,256,128) -> (512,512,256)
-    if nifti_np_array.shape != (image_size, image_size, image_size):
-        nifti_np_array = resampling(nifti_np_array, image_size)
+    # Resize data e.g. (256,256,128) -> (512,512,128)
+    if nifti_np_array[:,:,0].shape != (image_size, image_size):
+        nifti_np_array = resize(nifti_np_array, image_size)
 
     # CT image has Rescale Intercept and Rescale Slope. It is mandantory pre-process task.
     intercept = nifti_file.dataobj.inter
@@ -41,10 +40,11 @@ def patch():
     will be updated...
     '''
 
-def resampling(image, image_size):
+
+def resize(image, image_size):
     scale1 = image_size / image[:,0,0].shape
     scale2 = image_size / image[0,:,0].shape
-    scale3 = image_size / image[0,0,:].shape / 2
+    scale3 = 1.0
 
     scale_list = [scale1, scale2, scale3]
     image = zoom(image, scale_list, order=0)
