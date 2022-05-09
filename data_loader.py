@@ -10,7 +10,7 @@ import albumentations.pytorch
 import torch
 import torchvision
 from torch.utils.data import Dataset, DataLoader
-import util
+import utils.image_preprocess as image_preprocess
 
 # Make Dataset
 class Dataset(Dataset):
@@ -61,17 +61,17 @@ class Dataset(Dataset):
 
         # Pre-process task
         if self.modality == 'CT':
-            img = util.CT_preprocess(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
+            img = image_preprocess.CT_preprocess(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
             albu_dic = self.transform(image=img) # Apply augmentation to data
         elif self.modality == 'X-ray':
-            img = util.Xray_preprocess_minmax(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
+            img = image_preprocess.Xray_preprocess_minmax(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
             albu_dic = self.transform(image=img)
             '''
             img = Xray_preprocess_percentile(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
             albu_dic = self.transform(image=img)
             '''
         elif self.modality == 'Endo':
-            img = util.Endo_preprocess(img, image_size)*2-1
+            img = image_preprocess.Endo_preprocess(img, image_size)*2-1
             albu_dic = self.transform(image=img)
 
         data_dic= {'image' : albu_dic['image'], 'label' : label} # Make dictionary which has one data to image key and one label to label key
