@@ -73,6 +73,10 @@ class Dataset(Dataset):
         elif self.modality == 'Endo':
             img = image_preprocess.Endo_preprocess(img, image_size)*2-1
             albu_dic = self.transform(image=img)
+            
+        elif self.modality == 'MR':
+            img = image_preprocess.MR_preprocess(img, image_size)
+            albu_dic = self.transform(image=img)
 
         data_dic= {'image' : albu_dic['image'], 'label' : label} # Make dictionary which has one data to image key and one label to label key
         return data_dic
