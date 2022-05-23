@@ -123,6 +123,18 @@ def Xray_preprocess_percentile(data, image_size):
 
     return pixel_array_image # output : 0.0 ~ 1.0
 
+def MR_preprocess(data, image_size):
+    pixel_array_image = cv2.imread(data)
+    
+    # If image_size is not 512, change it to 512
+    if pixel_array_image.shape != (image_size, image_size):
+        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
+        
+    # normalized from 0 to 1
+    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
+    
+    return pixel_array_image # output : 0.0 ~ 1.0
+
 '''
 Metirc
 BC: binary class, ML: multi label, MC: multi class
