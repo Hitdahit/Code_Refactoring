@@ -122,7 +122,7 @@ def Xray_preprocess_percentile(data, image_size, photometricInterpretation='MONO
     elif pixel_array_image.shape[0] > image_size and pixel_array_image.shape[1] > image_size:
         pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_AREA)
 
-    # pixel value is divided by Percentile 99% and normalized from 0 to 1
+    # pixel value is divided by Percentile 99%
     ninetynine = np.percentile(pixel_array_image, 99)
     one = np.percentile(pixel_array_image, 1)
     pixel_array_image = np.clip(pixel_array_image, one, ninetynine)
@@ -141,7 +141,7 @@ def Xray_preprocess_percentile(data, image_size, photometricInterpretation='MONO
         pixel_array_image = pixel_array_image * 2 - 1
 
     return pixel_array_image
-    
+
 '''
 Metirc
 BC: binary class, ML: multi label, MC: multi class
