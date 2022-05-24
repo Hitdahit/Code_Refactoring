@@ -1,16 +1,22 @@
 import os
 import cv2
+import argparse
 import numpy as np
 import SimpleITK as sitk
 
-        
+parser = argparse.ArgumentParser()
+parser.add_argument('--train_dir', default='', type=str)
+parser.add_argument('--save_dir', default='', type=str)
+parser.add_argument('--view', default='coronal', type=str)
+   
 if __name__ == '__main__':      
+    args = parser.parse_args()
     
-    train_img_dir = 'directory of train image'
-    train_msk_dir = 'directory of train mask'
+    train_img_dir = args.train_dir + '/image'
+    train_msk_dir = args.train_dir + '/mask'
 
-    train_img_name = os.listdir('directory of train image')
-    train_msk_name = os.listdir('directory of train mask')
+    train_img_name = os.listdir(train_img_dir)
+    train_msk_name = os.listdir(train_msk_dir)
     
     ## check origin of input image
     check_image = sitk.ReadImage(train_img_dir + train_img_name[0])
@@ -29,12 +35,16 @@ if __name__ == '__main__':
         new_name = split_name[0]
         
         for index in range(images_array.shape[0]):
-            image = images_array[index, :, :]  # coronal view
-            #image = images_array[:, index, :]  # axial view
-            #image = images_array[:, :, index]  # sagittal view
+            
+            if args.view == 'coronal':
+                image = images_array[index, :, :]  
+            elif args.view == 'axial':
+                image = images_array[:, index, :]  
+            elif args.view == 'sagittal':
+                image = images_array[:, :, index]  
                         
             filename = new_name + '_%02d.npy'%(index+1)
-            np.save(train_img_dir + filename, image)
+            np.save(args.save_dir + filename, image)
             
     '''       
     If you use segmentation masks,
@@ -51,11 +61,15 @@ if __name__ == '__main__':
         new_name = split_name[0]
         
         for index in range(masks_array.shape[0]):
-            mask = masks_array[index, :, :]  # coronal view
-            #mask = masks_array[:, index, :]  # axial view
-            #mask = masks_array[:, :, index]  # sagittal view
+        
+            if args.view == 'coronal':
+                image = images_array[index, :, :]  
+            elif args.view == 'axial':
+                image = images_array[:, index, :]  
+            elif args.view == 'sagittal':
+                image = images_array[:, :, index] 
                         
             filename = new_name + '_%02d.npy'%(index+1)
-            np.save(train_msk_dir + filename, mask)
+            np.save(args.save_dir + filename, mask)
     '''
   
