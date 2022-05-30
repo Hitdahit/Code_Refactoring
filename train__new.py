@@ -55,7 +55,6 @@ def train_epoch_classification(
     
     return logs
 
-
 @torch.no_grad()
 def valid_epoch_classification(
     model,
@@ -98,3 +97,33 @@ def valid_epoch_classification(
             iterator.set_postfix_str(s)
     
     return logs
+
+'''
+train_logs = []
+valid_logs = []
+
+for epoch in range(start_epoch, args.EPOCHS):
+    print('\nEpoch: {}, LR: {}'.format(epoch, optimizer.param_groups[0]['lr']))
+    
+    train_log = train_epoch_classification(
+        model,
+        trainloader,
+        fn_loss,
+        metric,
+        optimizer,
+        device
+    )
+
+    valid_log = valid_epoch_classification(
+        model,
+        validloader,
+        fn_loss,
+        metric,
+        device
+    )
+
+    scheduler.step()
+
+    train_logs.append(train_log)
+    valid_logs.append(valid_log)
+'''
