@@ -24,19 +24,21 @@ def Endo_preprocess(data, image_size):
     return rgb_image
 
 # CT pre-processing
-def CT_preprocess(data, image_size, window_width=None, window_level=None): # (input data, image size which you want to resize, window width which you want, window level which you want)
+def CT_preprocess(data, image_size, window_width=None, window_level=None, photometricInterpretation='MONOCHROME2', normalize_range='1'): # (input data, image size which you want to resize, window width which you want, window level which you want).
     dicom_image = pydicom.read_file(data) # Read dicom file
-    pixel_array_image = dicom_image.pixel_array.astype(np.float32) # Change dicom image to array
+    pixel_array_image = dicom_image.pixel_array.astype(np.float32) # Change dicom image to array.
 
-    # If dicom image has 3 channel, change it to 1 channel
+    # If dicom image has 3 channel, change it to 1 channel.
     if len(pixel_array_image.shape) == 3:
         pixel_array_image = pixel_array_image[:,:,0]
     
     pixel_array_image = pixel_array_image.squeeze() # Delete 1 dimension in array -> make (512,512)
 
-    # If image_size is not 512, change it to 512
-    if pixel_array_image.shape != (image_size, image_size):
-        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
+    # If image_size is not what you want, change it.
+    if pixel_array_image.shape[0] < image_size and pixel_array_image.shape[1] < image_size:
+        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_CUBIC)
+    elif pixel_array_image.shape[0] > image_size and pixel_array_image.shape[1] > image_size:
+        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_AREA)
 
     # CT image has Rescale Intercept and Rescale Slope. It is mandantory pre-process task.
     intercept = dicom_image.RescaleIntercept
@@ -45,35 +47,33 @@ def CT_preprocess(data, image_size, window_width=None, window_level=None): # (in
     pixel_array_image = pixel_array_image * slope + intercept
 
     # If you give a specific value in window_width and window_level, it will be windowed by value of those.
-    if not window_width == None and window_level == None:
+    if window_width == None and window_level == None:
+        image_min = -1024.0
+        image_max = 3071.0
+    else:
         image_min = window_level - (window_width / 2.0)
         image_max = window_level + (window_width / 2.0)
 
-        # If image pixel is over max value or under min value, threshold to max and min
-        pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
-        pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
+    # If image pixel is over max value or under min value, threshold to max and min.
+    pixel_array_image = np.clip(pixel_array_image, image_min, image_max)
 
-        pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
-    else:
-        image_min = -1024.0
-        image_max = 3071.0
+    pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
 
-        # If image pixel is over max value or under min value, threshold to max and min
-        pixel_array_image[np.where(pixel_array_image < image_min)] = image_min
-        pixel_array_image[np.where(pixel_array_image > image_max)] = image_max
-
-        pixel_array_image = (pixel_array_image - image_min) / (image_max - image_min)
-
-    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
-    # In other words, it is conversion version of image that we know conventionally. So it has to be converted
-    if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
+    # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel.
+    # In other words, it is conversion version of image that we know conventionally. So it has to be converted.
+    if dicom_image.PhotometricInterpretation != photometricInterpretation:
         pixel_array_image = 1.0 - pixel_array_image
+    
+    # Normalization has two types, 0~1 or -1~1
+    if normalize_range == '1':
+        pass
+    elif normalize_range == '2':
+        pixel_array_image = pixel_array_image * 2 - 1
 
-    return pixel_array_image # output : 0.0 ~ 1.0
-
+    return pixel_array_image
 
 # X-ray pre-process by using min-max scaling
-def Xray_preprocess_minmax(data, image_size):
+def Xray_preprocess_minmax(data, image_size, photometricInterpretation='MONOCHROME2', normalize_range='1'):
     dicom_image = pydicom.read_file(data) # Read dicom file
     pixel_array_image = dicom_image.pixel_array.astype(np.float32) # Change dicom image to array
 
@@ -83,22 +83,30 @@ def Xray_preprocess_minmax(data, image_size):
     
     pixel_array_image = pixel_array_image.squeeze() # Delete 1 dimension in array -> make (512,512)
 
-    # If image_size is not 512, change it to 512
-    if pixel_array_image.shape != (image_size, image_size):
-        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
+    # If image_size is not what you want, change it.
+    if pixel_array_image.shape[0] < image_size and pixel_array_image.shape[1] < image_size:
+        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_CUBIC)
+    elif pixel_array_image.shape[0] > image_size and pixel_array_image.shape[1] > image_size:
+        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_AREA)
 
     pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
 
     # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
     # In other words, it is conversion version of image that we know conventionally. So it has to be converted
-    if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
+    if dicom_image.PhotometricInterpretation != photometricInterpretation:
         pixel_array_image = 1.0 - pixel_array_image
+        
+    # Normalization has two types, 0~1 or -1~1
+    if normalize_range == '1':
+        pass
+    elif normalize_range == '2':
+        pixel_array_image = pixel_array_image * 2 - 1
 
-    return pixel_array_image # output : 0.0 ~ 1.0
+    return pixel_array_image
 
 
 # X-ray pre-process by using percentile
-def Xray_preprocess_percentile(data, image_size):
+def Xray_preprocess_percentile(data, image_size, photometricInterpretation='MONOCHROME2', normalize_range='1', percentage=99):
     dicom_image = pydicom.read_file(data) # Read dicom file
     pixel_array_image = dicom_image.pixel_array.astype(np.float32) # Change dicom image to array
 
@@ -108,32 +116,31 @@ def Xray_preprocess_percentile(data, image_size):
     
     pixel_array_image = pixel_array_image.squeeze() # Delete 1 dimension in array -> make (512,512)
 
-    # If image_size is not 512, change it to 512
-    if pixel_array_image.shape != (image_size, image_size):
-        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
+    # If image_size is not what you want, change it.
+    if pixel_array_image.shape[0] < image_size and pixel_array_image.shape[1] < image_size:
+        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_CUBIC)
+    elif pixel_array_image.shape[0] > image_size and pixel_array_image.shape[1] > image_size:
+        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_AREA)
 
-    # pixel value is divided by Percentile 99% and normalized from 0 to 1
+    # pixel value is divided by Percentile 99%
+    ninetynine = np.percentile(pixel_array_image, percentage)
+    one = np.percentile(pixel_array_image, 100-percentage)
+    pixel_array_image = np.clip(pixel_array_image, one, ninetynine)
+    
     pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
-    pixel_array_image /= np.percentile(pixel_array_image, 99)
 
     # If dicom image has MONOCHROME1, min value of image is white pixel, while max value of image is black pixel
     # In other words, it is conversion version of image that we know conventionally. So it has to be converted
-    if dicom_image.PhotometricInterpretation == 'MONOCHROME1':
+    if dicom_image.PhotometricInterpretation != photometricInterpretation:
         pixel_array_image = 1.0 - pixel_array_image
-
-    return pixel_array_image # output : 0.0 ~ 1.0
-
-def MR_preprocess(data, image_size):
-    pixel_array_image = cv2.imread(data)
-    
-    # If image_size is not 512, change it to 512
-    if pixel_array_image.shape != (image_size, image_size):
-        pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size))
         
-    # normalized from 0 to 1
-    pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))
-    
-    return pixel_array_image # output : 0.0 ~ 1.0
+    # Normalization has two types, 0~1 or -1~1
+    if normalize_range == '1':
+        pass
+    elif normalize_range == '2':
+        pixel_array_image = pixel_array_image * 2 - 1
+
+    return pixel_array_image
 
 '''
 Metirc
