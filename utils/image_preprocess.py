@@ -106,7 +106,7 @@ def Xray_preprocess_minmax(data, image_size, photometricInterpretation='MONOCHRO
 
 
 # X-ray pre-process by using percentile
-def Xray_preprocess_percentile(data, image_size, photometricInterpretation='MONOCHROME2', normalize_range='1'):
+def Xray_preprocess_percentile(data, image_size, photometricInterpretation='MONOCHROME2', normalize_range='1', percentage=99):
     dicom_image = pydicom.read_file(data) # Read dicom file
     pixel_array_image = dicom_image.pixel_array.astype(np.float32) # Change dicom image to array
 
@@ -123,8 +123,8 @@ def Xray_preprocess_percentile(data, image_size, photometricInterpretation='MONO
         pixel_array_image = cv2.resize(pixel_array_image, (image_size, image_size), cv2.INTER_AREA)
 
     # pixel value is divided by Percentile 99%
-    ninetynine = np.percentile(pixel_array_image, 99)
-    one = np.percentile(pixel_array_image, 1)
+    ninetynine = np.percentile(pixel_array_image, percentage)
+    one = np.percentile(pixel_array_image, 100-percentage)
     pixel_array_image = np.clip(pixel_array_image, one, ninetynine)
     
     pixel_array_image = (pixel_array_image - np.min(pixel_array_image)) / (np.max(pixel_array_image) - np.min(pixel_array_image))

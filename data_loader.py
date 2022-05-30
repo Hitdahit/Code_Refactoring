@@ -36,7 +36,7 @@ class Dataset(Dataset):
         '''
         pass
 
-    def __init__(self, img_dir, mode, image_size, modality, transform):
+    def __init__(self, img_dir, mode, image_size, modality, transform, window_width, window_level, photometricInterpretation, normalize_range, percentage):
         '''
         data's root dir
         '''
@@ -44,6 +44,12 @@ class Dataset(Dataset):
         self.image_size = image_size # Get image_size
         self.modality = modality        
         self.transform = transform # Get augmentation
+
+        self.window_width = window_width
+        self.window_width = window_level
+        self.photometricInterpretation = photometricInterpretation
+        self.normalize_range = normalize_range
+        self.percentage = percentage
 
         self.classes =sorted( os.listdir(self.img_dir))
         
@@ -58,20 +64,26 @@ class Dataset(Dataset):
         img = self.imgs[idx] 
         label = self.labels[idx]
         image_size = self.image_size # Get image_size
+        photometricInterpretation = self.photometricInterpretation
+        normalize_range = self.normalize_range
 
         # Pre-process task
         if self.modality == 'CT':
-            img = image_preprocess.CT_preprocess(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
+            window_width = self.window_width
+            window_level = self.window_level
+
+            img = image_preprocess.CT_preprocess(img, image_size, window_width, window_level, photometricInterpretation, normalize_range)
             albu_dic = self.transform(image=img) # Apply augmentation to data
         elif self.modality == 'X-ray':
-            img = image_preprocess.Xray_preprocess_minmax(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
+            img = image_preprocess.Xray_preprocess_minmax(img, image_size, photometricInterpretation, normalize_range)
             albu_dic = self.transform(image=img)
             '''
-            img = Xray_preprocess_percentile(img, image_size)*2 - 1 # Data value range : -1.0 ~ 1.0
+            percentage = self.percentage
+            img = Xray_preprocess_percentile(img, image_size, photometricInterpretation, normalize_range, percentage)
             albu_dic = self.transform(image=img)
             '''
         elif self.modality == 'Endo':
-            img = image_preprocess.Endo_preprocess(img, image_size)*2-1
+            img = image_preprocess.Endo_preprocess(img, image_size, photometricInterpretation, normalize_range)
             albu_dic = self.transform(image=img)
             
         elif self.modality == 'MR':
@@ -85,7 +97,8 @@ class Dataset(Dataset):
 # get loader from Dataset as batch size
 # img_dir, label_dir, preprocess_type, transform, batch_size, workers
 def get_loader(args, mode='train'):
-    dataset = Dataset(args.data_dir, mode, args.img_size, args.modality, args.augmentation)
+    dataset = Dataset(args.data_dir, mode, args.img_size, args.modality, args.augmentation,
+                      args.window_width, args.window_level, args.photometricInterpretation, args.normalize_range, args.percentage)
     dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
                             shuffle=args.shuffle, num_workers=args.num_worker,
                             drop_last=args.drop_last)
