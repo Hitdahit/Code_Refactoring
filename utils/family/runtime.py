@@ -40,6 +40,29 @@ class Metrics():
 Checkpoint & Log saver
 '''
 class Saver():
+    def __init__(self, log_library='wandb', log_dir, ckpt_dir, experiment_name):
+        self.log_dir = log_dir
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir)
+            
+        self.ckpt_dir = ckpt_dir
+        if not os.path.exists(self.ckpt_dir):
+            os.makedirs(self.ckpt_dir)
+        self.experiment_name = experiment_name    
+        if 'wandb' in log_library:
+            self.logger_train = # wandb setup
+            self.logger_valid = # wandb setup
+        
+        elif 'tensorboard' in log_library:
+            self.logger_train = SummaryWriter(logs_dir=os.path.join(self.log_dir, 'train'))
+            self.logger_valid = SummaryWriter(logs_dir=os.path.join(self.log_dir, 'valid'))
+        
+    
+    def add_log(self, ):
+        pass
+    def save_checkpoint(self, net, optimizer, epoch):
+        torch.save({'net': net.state_dict(), 'optim':optimizer.state_dict()}, '%s/%s%d.pth'%(self.ckpt_dir, self.experiment_name, epoch))
+
     
 
     
