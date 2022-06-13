@@ -1,5 +1,4 @@
 import re
-import os
 import torch
 import torch.nn as nn
 import torch.utils.SummaryWriter as SummaryWriter
@@ -55,16 +54,18 @@ class Saver():
             self.logger_valid = # wandb setup
         
         elif 'tensorboard' in log_library:
-            self.logger_train = SummaryWriter(logs_dir=os.path.join(self.log_dir, 'train'))
-            self.logger_valid = SummaryWriter(logs_dir=os.path.join(self.log_dir, 'valid'))
+            self.logger_train = SummaryWriter(logs_dir=os.path.join(self.log_dir, self.experiment_name, 'train'))
+            self.logger_valid = SummaryWriter(logs_dir=os.path.join(self.log_dir, self.experiment_name, 'valid'))
         
     
     def add_log(self, ):
         pass
     def save_checkpoint(self, net, optimizer, epoch):
-        torch.save({'net': net.state_dict(), 'optim':optimizer.state_dict()}, '%s/%s%d.pth'%(self.ckpt_dir, self.experiment_name, epoch))
-
-    
+        '''
+        부가 기능 추가 가능 (ex acc등 적기)
+        key값 반드시 lower case로 적을 것.
+        '''
+        torch.save({'net': net.state_dict(), 'optim':optimizer.state_dict()}, '%s/%s/%d.pth'%(self.ckpt_dir, self.experiment_name, epoch))
 
     
     
