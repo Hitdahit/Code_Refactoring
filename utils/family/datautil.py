@@ -16,32 +16,31 @@ Labeler
     #MC label / ML label / BC label
 '''
 class base_labeler():
-    def __init__(self, task_type, label_type):
+    def __init__(self, file_name, task_type, label_type, label_name, label_source):
         '''
-        task_type: BC, MC, ML
-        label_type: one-hot(float), ordinal(int)
+        task_type: (str) BC, MC, ML
+        label_type: (str) one-hot(float), ordinal(int)
+        label_name: (list: str) ['label1', 'label2', ...]
+                    ex) ['Normal', 'Disease']
+        label_source: (str) label_from_path, label_from_json, label_from_df
         '''
         self.task_type = task_type
         self.label_type = label_type
+        
+        self.label_name = label_name
+        self.label_source = label_source
+        
+        self.n_classes = len(self.label_name)
     
-    
-    
-class label_from_dir(base_labeler):
-    def __init___(self, task_type, label_type):
-        super.__init___(task_type, label_type)
+        if self.label_type =='one-hot':
+            self.label_type = np.eye(self.n_classes)    
+        else:
+            self.label_type = np.arange(self.n_classes)
+            
+    def _label_from_path(self, path):
+        r = [self.label_type[idx] for idx, l in enumerate(self.label_name) if l in path]
+            
+    def _label_from_json(self):
         pass
-    
-class label_from_path(base_labeler):
-    def __init___(self, task_type, label_type):
-        super.__init___(task_type, label_type)
-        pass
-    
-class label_from_json(base_labeler):
-    def __init___(self, task_type, label_type):
-        super.__init___(task_type, label_type)
-        pass
-    
-class label_from_df(base_labeler):
-    def __init___(self, task_type, label_type):
-        super.__init___(task_type, label_type)
+    def _label_from_df(self):
         pass

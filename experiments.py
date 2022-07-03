@@ -22,8 +22,8 @@ loss = dict(family='model', lib='torch.nn', type='BCEWithLogitsLoss',
 RUNTIME FAMILY
 '''
     # runtime settings
-ckpt_directory = '.../ckpt_v1'
-log_directory = '.../log_v1'
+ckpt_directory = '/~~~/train_v1/ckpt_v1'
+log_directory = '/~~~/train_v1/log_v1'
 
     #기본적으론 torch.save 쓰되 함수로 묶어서 다른 부가기능도 끼워 넣기.
 checkpoint_config = dict(family='runtime', lib='utils', type='save',
@@ -68,7 +68,7 @@ DATASET FAMILY
     # dataset settings
 modality = 'EN'
 
-data_root = '.../datav1'
+data_root = '/~~~/datav1'
 
 task_type = 'BC'
 
@@ -80,8 +80,7 @@ task_type = 'BC'
     #label type
     #one-hot / ordinal / regression
     # per-patient / per-image label (CT, MR)
-labeler = dict(family='dataset', lib='utils', type='label_from_dir',
-              task_type='BC', label_type='one-hot')
+labeler = dict(family='dataset', lib='utils', task_type='BC', label_type='one-hot', label_name=['EoE', 'Normal'], label_source='from_path')
 
 prep_config = dict(family='dataset', lib=None, type=None,
                   is_rgb=True, modality=modality, img_dir=data_root, 
