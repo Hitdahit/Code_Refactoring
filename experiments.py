@@ -72,6 +72,7 @@ data_root = '/~~~/datav1'
 
 task_type = 'BC'
 
+img_size = 512
 
     #label from directory?
     #label from path?
@@ -80,14 +81,14 @@ task_type = 'BC'
     #label type
     #one-hot / ordinal / regression
     # per-patient / per-image label (CT, MR)
-labeler = dict(family='dataset', lib='utils', task_type='BC', label_type='one-hot', label_name=['EoE', 'Normal'], label_source='from_path')
+labeler = dict(family='datautil', lib='utils', task_type='BC', label_type='one-hot', label_name=['EoE', 'Normal'], label_source='from_path')
 
-prep_config = dict(family='dataset', lib=None, type=None,
+prep_config = dict(family='datautil', lib='utils', type='None',
                   is_rgb=True, modality=modality, img_dir=data_root, 
-                  img_sz=(224, 224), WW=None, WL=None, drop_percentile=1.0,
+                  img_sz=(img_size, img_size), WW=None, WL=None, drop_percentile=1.0,
                   norm_range=(0, 1), norm_method='minmax')
 
-train_dataset = dict(family='dataset', lib='utils', type='EoE_dataset',
+train_dataset = dict(family='dataset', lib='data_loader', type='Dataset',
                      label=labeler, mode='train', preprocessing=prep_config,
                      transform=train_augmentations)
 
