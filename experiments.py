@@ -1,10 +1,12 @@
-_base_ = ['custom_param.py']
+_base_ = ['experiments.py']
+import albumentations as A
+import albumentations.pytorch
 '''
 MODEL FAMILY
 '''
     # model (model caller 구현해야할듯...)
-model = dict(family='model', lib='model', type='resnet', 
-             name='resnet34')
+model = dict(family='model', lib='models', type='ResNet', 
+             n_classes=2, model_size=34, pretrained = False)
 
     # optimizer
 optimizer = dict(family='model', lib='torch.optim', type='SGD', 
@@ -22,50 +24,24 @@ loss = dict(family='model', lib='torch.nn', type='BCEWithLogitsLoss',
 RUNTIME FAMILY
 '''
     # runtime settings
-ckpt_directory = '/~~~/train_v1/ckpt_v1'
-log_directory = '/~~~/train_v1/log_v1'
+experiment_name = 'wow'
+ckpt_directory = './runs/{}/ckpt'.format(experiment_name)
+log_directory = './runs/{}/log'.format(experiment_name)
 
     #기본적으론 torch.save 쓰되 함수로 묶어서 다른 부가기능도 끼워 넣기.
-checkpoint_config = dict(family='runtime', lib='utils', type='save',
-                         interval=1, ckpt_dir=ckpt_directory)
-log_config = dict(family='runtime', lib='utils', type='save',
-                  sub_lib='wandb', log_dir=log_directory)
-
-
-    # augmentation
-    # param은 다시 확인
-train_augmentations = [
-    dict(family='runtime', lib='albumentations',type='Resize', 
-         scale=(224, 224), keep_ratio=False),
-    dict(family='runtime', lib='albumentations', type='Flip',
-         flip_ratio=0.5),
-    dict(family='runtime', lib='albumentations', type='FormatShape',
-         input_format='NCHW'),
-    dict(family='runtime', lib='albumentations', type='Collect', 
-         keys=['imgs', 'label'], meta_keys=[]),
-    dict(family='runtime', lib='albumentations', type='ToTensor', 
-         keys=['imgs', 'label'])
-]
-
-valid_augmentations = [
-    dict(family='runtime', lib='albumentations', type='Collect', 
-         keys=['imgs', 'label'], meta_keys=[]),
-    dict(family='runtime', lib='albumentations', type='ToTensor', 
-         keys=['imgs', 'label'])
-]
-
+save_config = dict(family='runtime', lib='utils.family.runtime', type='Saver',
+                         log_dir=log_directory, ckpt_dir=ckpt_directory, experiment_name=experiment_name, log_library='tensorboard')
 
 evaluation = [
-    dict(family='runtime', lib='utils', type='top_k_accuracy',
-         k=1, interval=2),
-    dict(family='runtime', lib='utils', type='mean_class_accuracy',
-        interval=2)
+    dict(family='runtime', lib='utils.family.runtime', type='Metrics',
+         activation=None, threshold=0.5, name='f_score', eps=1e-7, beta=1),
+    dict(family='runtime', lib='utils.family.runtime', type='Metrics',
+        activation=None, threshold=0.5, name='f_score', eps=1e-7, beta=1)
 ]
 
 '''
 DATASET FAMILY
 '''
-    # dataset settings
 modality = 'EN'
 
 data_root = '/~~~/datav1'
@@ -74,34 +50,38 @@ task_type = 'BC'
 
 img_size = 512
 
-    #label from directory?
-    #label from path?
-    #label from json / txt / excel / etc... ?
-    #\
-    #label type
-    #one-hot / ordinal / regression
-    # per-patient / per-image label (CT, MR)
-classes = ['EoE', 'Normal']
-labeler = dict(family='datautil', lib='utils', task_type='BC', label_type='one-hot', label_name=classes, label_source='from_path')
 
-prep_config = dict(family='datautil', lib='utils', type='None',
-                  is_rgb=True, modality=modality, img_dir=data_root, 
-                  img_sz=(img_size, img_size), WW=None, WL=None, drop_percentile=1.0,
-                  norm_range=(0, 1), norm_method='minmax')
+classes = ['EoE', 'Normal']
+labeler = dict(family='datautil', lib='utils.family.datautil', type='base_labeler',
+               task_type='BC', label_type='one-hot', label_name=classes, label_source='from_path')
+
+prep_config = dict(family='datautil', lib='utils.family.datautil', type='Endo_preprocessor',
+                   image_size=img_size, normalize_range='1', mode='default')
+
+
+    # augmentation
+    # param은 다시 확인
+train_augmentations = dict(family='datautil', lib=None, type='augmentation',
+        items = A.Compose([                
+                A.OneOf([
+                    A.MedianBlur(blur_limit=5, p=0.5),
+                    A.MotionBlur(blur_limit=7, p=0.5),
+                    A.Sharpen(alpha=(0.2, 0.5), lightness=(0.5, 1.0), always_apply=False, p=0.5)
+                    ], p=0.6),
+                
+    
+                A.RandomBrightnessContrast(brightness_limit=(0.1, 0.5), contrast_limit=(0.1, 0.5), p=0.6),
+                A.HueSaturationValue(hue_shift_limit=(0.1, 0.3), sat_shift_limit=(0.1, 0.3),
+                                        val_shift_limit=(0.1, 0.3), p=0.3),
+                
+                A.OpticalDistortion(distort_limit=0.05, p=0.2),
+                A.pytorch.transforms.ToTensorV2()
+                ])
+    )
+
+valid_augmentations = dict(family='datautil', lib=None, type='augmentation',
+        items = A.Compose([A.pytorch.transforms.ToTensorV2()]))
 
 '''
 dataset은 train에서 정의후 쓰는걸로.
-'''
-
-'''
-부가기능 list:
-    1. utils/resume   -  지영         etc-family
-    2. utils/transfer learning - 지영 etc-family
-    3. utils/log frequency - 강길     runtime-family
-    4. utils/ckpt interval - 강길     runtime-family
-    5. utils/metric - 강길            runtime-family
-    6. utils/labeler - 종준           datautil-family
-    7. 
-    8. multi GPU - 
-
 '''

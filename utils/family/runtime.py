@@ -3,21 +3,20 @@ import re
 import sys
 import torch
 import torch.nn as nn
-import torch.utils.SummaryWriter as SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 '''
 Metrics
 '''
 
 class Activation(nn.Module):
-    def __init__(self, name, **param):
-        super.__init__()
-        
+    def __init__(self, name):
+        super().__init__()
         if name is None or name == 'identity':
-            self.activation = nn.Identity(**param)
+            self.activation = nn.Identity()
         elif 'custom' in name:
-            self.activation = custom_activation(**param)
+            self.activation = custom_activation()
         elif callable(name): # __call__ 함수의 유무
-            self.activation = name(**param)
+            self.activation = name()
         
         else:
             self.activation = getattr(sys.modules['torch.nn'], name)(**param)
@@ -26,15 +25,68 @@ class Activation(nn.Module):
         return self.activation(x)
     
 class Metrics():
-    def __init__(self, activation=None, threshold=0.5, name=None, eps=1e-7, **kwargs):
+    def __init__(self, activation=None, threshold=0.5, name=None, eps=1e-7, beta=1):
         self.activation = Activation(activation)
-        self.eps = eps
+        
         self.threshold = threshold
-        self.metric = # 얘네 self.threshold, name,  eps, **kwargs 불러서 쓰게끔
-    
-    def forward(self, pred, gt):
+        self.metric = getattr(self, name) #얘네 self.threshold, name,  eps, **kwargs 불러서 쓰게끔
+        self.eps = eps
+        self.beta = beta
+        
+    def execute(self, pred, gt):
         pred = self.activation(pred)
         return self.metric(pred, gt)
+    
+    '''
+    Metrics:
+        Select your wanted metircs from here or
+        write your own metrics to evaluate your model
+        
+    '''
+    def _threshold(self, x):
+        if self.threshold is not None:
+            return (x > self.threshold).type(x.dtype)
+        else:
+            return x
+    
+    def accuracy(self, pr, gt):
+        pr = self._threshold(pr)
+    
+        tp = torch.sum(gt == pr, dtype=pr.dtype)
+        score = tp / gt.size(0)
+        return score
+    
+    
+    def f_score(self, pr, gt):
+        pr = self._threshold(pr)
+    
+        tp = torch.sum(gt * pr)
+        fp = torch.sum(pr) - tp
+        fn = torch.sum(gt) - tp
+    
+        score = ((1 + self.beta ** 2) * tp + self.eps) / ((1 + self.beta ** 2) * tp + self.beta ** 2 * fn + fp + self.eps)
+    
+        return score
+    
+    def precision(self, pr, gt):
+        pr = self._threshold(pr)
+    
+        tp = torch.sum(gt * pr)
+        fp = torch.sum(pr) - tp
+    
+        score = (tp + self.eps) / (tp + fp + self.eps)
+    
+        return score
+    
+    def recall(self, pr, gt):
+        pr = self._threshold(pr)
+    
+        tp = torch.sum(gt * pr)
+        fn = torch.sum(gt) - tp
+    
+        score = (tp + self.eps) / (tp + fn + self.eps)
+    
+        return  score 
         
     
     
@@ -42,7 +94,7 @@ class Metrics():
 Checkpoint & Log saver
 '''
 class Saver():
-    def __init__(self, log_library='wandb', log_dir, ckpt_dir, experiment_name):
+    def __init__(self, log_dir, ckpt_dir, experiment_name, log_library='wandb'):
         self.log_dir = log_dir
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
@@ -50,14 +102,16 @@ class Saver():
         self.ckpt_dir = ckpt_dir
         if not os.path.exists(self.ckpt_dir):
             os.makedirs(self.ckpt_dir)
+            
         self.experiment_name = experiment_name    
+        
         if 'wandb' in log_library:
-            self.logger_train = # wandb setup
-            self.logger_valid = # wandb setup
+            self.logger_train = None# wandb setup
+            self.logger_valid = None# wandb setup
         
         elif 'tensorboard' in log_library:
-            self.logger_train = SummaryWriter(logs_dir=os.path.join(self.log_dir, self.experiment_name, 'train'))
-            self.logger_valid = SummaryWriter(logs_dir=os.path.join(self.log_dir, self.experiment_name, 'valid'))
+            self.logger_train = SummaryWriter(log_dir=os.path.join(self.log_dir, self.experiment_name, 'train'))
+            self.logger_valid = SummaryWriter(log_dir=os.path.join(self.log_dir, self.experiment_name, 'valid'))
         
     
     def add_log(self, ):
@@ -100,53 +154,3 @@ class custom_activation(nn.Module):
     def forward(self, x):
         pass
     
-'''
-Metrics:
-    Select your wanted metircs from here or
-    write your own metrics to evaluate your model
-    
-'''
-def _threshold(x, threshold=None):
-    if threshold is not None:
-        return (x > threshold).type(x.dtype)
-    else:
-        return x
-
-def accuracy(pr, gt, threshold=0.5):
-    pr = _threshold(pr, threshold=threshold)
-
-    tp = torch.sum(gt == pr, dtype=pr.dtype)
-    score = tp / gt.size(0)
-    return score
-
-
-def f_score(pr, gt, beta=1, eps=1e-7, threshold=None):
-    pr = _threshold(pr, threshold=threshold)
-
-    tp = torch.sum(gt * pr)
-    fp = torch.sum(pr) - tp
-    fn = torch.sum(gt) - tp
-
-    score = ((1 + beta ** 2) * tp + eps) / ((1 + beta ** 2) * tp + beta ** 2 * fn + fp + eps)
-
-    return score
-
-def precision(pr, gt, eps=1e-7, threshold=None):
-    pr = _threshold(pr, threshold=threshold)
-
-    tp = torch.sum(gt * pr)
-    fp = torch.sum(pr) - tp
-
-    score = (tp + eps) / (tp + fp + eps)
-
-    return score
-
-def recall(pr, gt, eps=1e-7, threshold=None):
-    pr = _threshold(pr, threshold=threshold)
-
-    tp = torch.sum(gt * pr)
-    fn = torch.sum(gt) - tp
-
-    score = (tp + eps) / (tp + fn + eps)
-
-    return  score 

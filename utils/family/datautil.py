@@ -253,3 +253,15 @@ class Endo_preprocessor():
         arr = (arr - np.min(arr)) / (np.max(arr) - np.min(arr))
         
         return arr
+
+class augmenations():
+    def __init__(self, ):
+        '''
+            if you want custom augmentations,
+            write your augmentations here.
+
+            if you use albumentations or monai,
+            just jot your settings on experiments.py
+        '''
+        pass
+    

@@ -8,9 +8,11 @@ from train import *
 import argparse
 from configs_wrapper import setting
 
+
 import os
 import configs
 import sys
+import models
 
 #setting_getter = argparse.ArgumentParser(description='Put your experiment file and version number')
 #setting_getter.add_argument('--text_path', '-t', type=str, help='your experiment file')
@@ -21,6 +23,7 @@ import sys
 
 #args = Version_Dictionary(setting_getter.version, txt_lst)
 #args.set_value()
+
 
 
 dic = configs.Config.fromfile('./experiments.py')
