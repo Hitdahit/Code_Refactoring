@@ -49,6 +49,7 @@ class setting():
                         item_lst.append(item)
                         
                     elif type(item) is configs.ConfigDict:
+                        
                         values = list(item.values())
                 
                         family = values[0]
@@ -56,6 +57,7 @@ class setting():
                         attr = values[2]
                         param = tuple(values[3:])
                         
+
                         item_lst.append(getattr(sys.modules[lib], attr)(*param))
                         
                 setattr(self, i, item_lst)

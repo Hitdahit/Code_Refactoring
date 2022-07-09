@@ -24,6 +24,9 @@ loss = dict(family='model', lib='torch.nn', type='BCEWithLogitsLoss',
 RUNTIME FAMILY
 '''
     # runtime settings
+use_amp = False
+print_freq = 1
+epoch = 100
 experiment_name = 'wow'
 ckpt_directory = './runs/{}/ckpt'.format(experiment_name)
 log_directory = './runs/{}/log'.format(experiment_name)
@@ -32,12 +35,8 @@ log_directory = './runs/{}/log'.format(experiment_name)
 save_config = dict(family='runtime', lib='utils.family.runtime', type='Saver',
                          log_dir=log_directory, ckpt_dir=ckpt_directory, experiment_name=experiment_name, log_library='tensorboard')
 
-evaluation = [
-    dict(family='runtime', lib='utils.family.runtime', type='Metrics',
-         activation=None, threshold=0.5, name='f_score', eps=1e-7, beta=1),
-    dict(family='runtime', lib='utils.family.runtime', type='Metrics',
-        activation=None, threshold=0.5, name='f_score', eps=1e-7, beta=1)
-]
+evaluation = dict(family='runtime', lib='utils.family.runtime', type='Metrics',
+         activation=None, threshold=0.5, name=['f_score', 'accuracy'], eps=1e-7, beta=1)
 
 '''
 DATASET FAMILY
