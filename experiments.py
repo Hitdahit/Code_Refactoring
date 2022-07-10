@@ -49,7 +49,6 @@ task_type = 'BC'
 
 img_size = 512
 
-
 classes = ['EoE', 'Normal']
 labeler = dict(family='datautil', lib='utils.family.datautil', type='base_labeler',
                task_type='BC', label_type='one-hot', label_name=classes, label_source='from_path')

@@ -7,7 +7,6 @@ from utils.family import runtime, etc, datautil, modelutil
 class setting():
     def __init__(self, set_dict):
         self.settings = set_dict
-        self.parse()
         
     def parse(self):
         for i in self.settings.keys():

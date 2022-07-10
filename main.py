@@ -14,19 +14,11 @@ import configs
 import sys
 import models
 
-#setting_getter = argparse.ArgumentParser(description='Put your experiment file and version number')
-#setting_getter.add_argument('--text_path', '-t', type=str, help='your experiment file')
-#setting_getter.add_argument('--version', '-v', type=int, help='version number to experiment')
-
-#setting_getter = setting_getter.parse_args()
-#txt_lst = get_version_text(setting_getter.version, setting_getter.text_path)
-
-#args = Version_Dictionary(setting_getter.version, txt_lst)
-#args.set_value()
 parser = argparse.ArgumentParser(description='Put your wanted GPU num(zero indexed) and selected GPU vram size')
 parser.add_argument('--number', '-n', type=str, help='GPU_number, zero indexed')
+parser = parser.parse_args()
 
-os.environ["CUDA_VISIBLE_DEVICES"]=parser.number
+os.environ["CUDA_VISIBLE_DEVICES"] = parser.number
 print('gpu? ', torch.cuda.is_available())
 device = torch.device(f'cuda:{parser.number}' if torch.cuda.is_available() else 'cpu')
 torch.cuda.set_device(device)
