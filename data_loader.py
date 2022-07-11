@@ -23,6 +23,8 @@ class Dataset(Dataset):
         self.labeler = args.labeler
         self.modality = args.modality    
         self.preprocessor = args.prep_config    
+        self.classes = args.classes
+        
         self.transform = args.train_augmentations if 'train' in mode else args.valid_augmentations
         
         imgs = [sorted(os.listdir(os.path.join(self.img_dir, mode, i))) for i in self.classes]
