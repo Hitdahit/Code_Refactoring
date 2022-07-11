@@ -24,13 +24,13 @@ class Metrics():
         self.activation = Activation(activation)
 
         self.threshold = threshold
-        self.metric = getattr(self, name) #얘네 self.threshold, name,  eps, **kwargs 불러서 쓰게끔
+        
         self.eps = eps
         self.beta = beta
         
         self.metric_logger = MetricLogger(delimiter="  ", n=batch_size)
         for i in self.name:
-            self.meric_logger.add_meter(i, SmoothedValue(window_size=1, fmt='{value:.6f}')) 
+            self.metric_logger.add_meter(i, SmoothedValue(window_size=1, fmt='{value:.6f}')) 
 
 
     def execute(self, pred, gt):
@@ -205,10 +205,12 @@ class Metrics():
 
         if title:
             plt.title(title)
+            
 ######################## ACTIVATIONS #############################
 class Activation(nn.Module):
     def __init__(self, name):
         super().__init__()
+        
         if name is None or name == 'identity':
             self.activation = nn.Identity()
         elif 'custom' in name:
@@ -272,15 +274,15 @@ class Saver():
             self.logger_valid = None# wandb setup
         
         elif 'tensorboard' in log_library:
-            self.logger_train = SummaryWriter(log_dir=os.path.join(self.log_dir, self.experiment_name, 'train'))
-            self.logger_valid = SummaryWriter(log_dir=os.path.join(self.log_dir, self.experiment_name, 'valid'))
+            self.logger_train = SummaryWriter(log_dir=os.path.join(self.log_dir, 'train'))
+            self.logger_valid = SummaryWriter(log_dir=os.path.join(self.log_dir, 'valid'))
         
     
     def add_log(self, ):
         pass
     def save_checkpoint(self, net, optimizer, epoch):
         '''
-        부가 기능 추가 가능 (ex acc등 적기)
+        부가 기능 추가 가능 (ex acc 기록 등)
         key값 반드시 lower case로 적을 것.
         '''
         torch.save({'net': net.state_dict(), 'optim':optimizer.state_dict()}, '%s/%s/%d.pth'%(self.ckpt_dir, self.experiment_name, epoch))

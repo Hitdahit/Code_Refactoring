@@ -16,7 +16,6 @@ class setting():
                 setattr(self, i, self.settings[i])
         
             elif type(self.settings[i]) is configs.ConfigDict:
-                print(i)
                 
                 values = list(self.settings[i].values())
                 
