@@ -14,7 +14,7 @@ def train_one_epoch(args, epoch):
 
     log_header =  f"Epoch: [{epoch}]"
 
-    for data in args.evaluation.metric_logger.log_every(args.dataloader, args.print_freq, log_header):
+    for data in args.evaluation.metric_logger.log_every(args.train_dataloader, args.print_freq, log_header):
         x = data['image'].float().to(args.device)
         y = data['label'].long().to(args.device)
 
@@ -51,7 +51,7 @@ def valid_one_epoch(args, epoch):
     
     log_header = 'TEST:'
 
-    for data in args.evaluation.metric_logger.log_every(args.dataloader, args.print_freq, log_header):
+    for data in args.evaluation.metric_logger.log_every(args.valid_dataloader, args.print_freq, log_header):
         x = data['image'].float().to(args.device)
         y = data['label'].long().to(args.device)
 

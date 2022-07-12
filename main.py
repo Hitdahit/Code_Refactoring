@@ -30,7 +30,8 @@ dic = configs.Config.fromfile('./experiments.py')
 args = setting(dic)
 args.parse()
 
-setattr(args, 'dataloader', Dataset(args))
+setattr(args, 'train_dataloader', Dataset(args, mode='train'))
+setattr(args, 'valid_dataloader', Dataset(args, mode='valid'))
 setattr(args, 'device', device)
 
 for i in range(args.epoch):
