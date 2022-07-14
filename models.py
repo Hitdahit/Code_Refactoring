@@ -1,30 +1,33 @@
 from statistics import mode
 import torch
 import torch.nn as nn
-from model import ResNet, VGG, DenseNet
+from model.ResNet import *
+from model.VGG import *
+from model.DenseNet import *
 #from efficientnet_pytorch import EfficientNet
 
 
 # ResNet  18, 34, 50, 101, 152
 
-class ResNet_Classifier(nn.Module):
+class ResNet(nn.Module):
     def __init__(self, n_classes, model_size, pretrained = False):
         super(ResNet, self).__init__()
         
         if model_size == 18:
-            self.pretrained_model = ResNet.resnet18(pretrained = pretrained, num_classes = n_classes)
+            self.pretrained_model = resnet18(pretrained = pretrained, num_classes = n_classes)
                 
         elif model_size == 34:
-            self.pretrained_model = ResNet.resnet34(pretrained = pretrained, num_classes = n_classes)
+            #self.pretrained_model = resnet34(pretrained = pretrained, num_classes = n_classes)
+            self.pretrained_model = resnet34()
                 
         elif model_size == 50:
-            self.pretrained_model = ResNet.resnet50(pretrained = pretrained, num_classes = n_classes)
+            self.pretrained_model = resnet50(pretrained = pretrained, num_classes = n_classes)
                 
         elif model_size == 101:
-            self.pretrained_model = ResNet.resnet101(pretrained = pretrained, num_classes = n_classes)
+            self.pretrained_model = resnet101(pretrained = pretrained, num_classes = n_classes)
                 
         elif model_size == 152:
-            self.pretrained_model = ResNet.resnet152(pretrained = pretrained, num_classes = n_classes)
+            self.pretrained_model = resnet152(pretrained = pretrained, num_classes = n_classes)
                 
     def forward(self, imgs):
         output = self.pretrained_model(imgs)
