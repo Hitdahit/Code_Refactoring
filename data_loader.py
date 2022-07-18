@@ -27,8 +27,8 @@ class Dataset(Dataset):
         
         self.transform = args.train_augmentations if 'train' in mode else args.valid_augmentations
         
-        imgs = [sorted(os.listdir(os.path.join(self.img_dir, mode, i))) for i in self.classes]
-        self.imgs = [os.path.join(self.img_dir, mode, self.classes[idx], j) for idx, i in enumerate(imgs) for j in i]
+        self.imgs, self.labels = args.labeler.get_source(mode, self.img_dir)
+
 
     def __len__(self):
         return len(self.imgs)
@@ -41,7 +41,7 @@ class Dataset(Dataset):
             img = pydicom.dcmread(self.imgs[idx])
 
         img = self.preprocessor.execute(img)
-        label = self.labeler.execute(self.imgs[idx])
+        label = self.labels[idx]
         
         albu_dic = self.transform(image=img)
 

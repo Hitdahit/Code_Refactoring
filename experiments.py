@@ -51,8 +51,8 @@ task_type = 'BC'
 img_size = 512
 
 classes = ['EoE', 'Normal']
-labeler = dict(family='datautil', lib='utils.family.datautil', type='base_labeler',
-               task_type='BC', label_type='one-hot', label_name=classes, label_source='from_path')
+labeler = dict(family='datautil', lib='utils.family.datautil', type='Source',
+               task_type='BC', label_type='one-hot', label_name=classes, annotation_file=None)
 
 prep_config = dict(family='datautil', lib='utils.family.datautil', type='Endo_preprocessor',
                    image_size=img_size, normalize_range='1', mode='default')
