@@ -1,5 +1,6 @@
 import os
 import json
+from re import I
 import pandas as pd
 import numpy as np
 
@@ -17,27 +18,66 @@ Labeler
     
     #MC label / ML label / BC label
 '''
-class base_labeler():
-    def __init__(self, task_type, label_type, label_name, label_source):
+class Source():
+    '''
+    Source contains file names and labels.
+    '''
+    def __init__(self, task_type, label_type, label_name, annotation_file=None):
         '''
-        task_type: (str) BC, MC, ML
+        task_type:  (str) BC, MC, ML 
+                    !!! BC and MC will work without annotation_file
+
         label_type: (str) one-hot(float), ordinal(int)
+
         label_name: (list: str) ['label1', 'label2', ...]
                     ex) ['Normal', 'Disease']
-        label_source: (str) label_from_path, label_from_json, label_from_df
+
+        annotation_file: (str) label_from_path, label_from_json, label_from_df
         '''
         self.task_type = task_type
         self.label_type = label_type
         
         self.label_name = label_name
-        self.label_source = label_source
+        self.annotation = annotation_file
         
         self.n_classes = len(self.label_name)
-    
+        self.label = None
+
         if self.label_type =='one-hot':
-            self.label_type = np.eye(self.n_classes)    
-        else:
-            self.label_type = np.arange(self.n_classes)
+            self.label = np.eye(self.n_classes)    
+
+        elif self.label_type == 'ordinal':
+            self.label = np.arange(self.n_classes)
+
+
+    def get_source(self, mode, data_root):
+        if self.annotation is None:
+            if 'ML' in self.task_type:
+                raise Exception('Multi Label classification requires annotation_file')
+            
+            
+            try:
+                '''
+                BC, MC annotation file 없는 경우
+                '''
+                imgs = [os.listdir(os.path.join(data_root, mode, i)) for i in self.label_name]
+                imgs = [os.path.join(data_root, mode, self.classes[idx], j) for idx, i in enumerate(imgs) for j in i]
+                
+                labels =[self.label[self._label_from_path(i)] for i in imgs]
+                
+                labels = np.array(labels, dtype=np.float32) if 'one-hot' in self.label_type else np.array(labels, dtype=np.int64)
+                                
+            except:
+                raise Exception('your img data path does not contain none of the label_name.')
+        
+        elif 'json' in self.annotation.split('.')[-1]:
+            pass
+        elif 'csv' in self.annotation.split('.')[-1] or 'xlsx' in self.annotation.split('.')[-1]:
+            pass
+
+        return imgs, labels
+
+
     def execute(self, x):
         if 'from_path' in self.label_source:
             ret = self._label_from_path(x)
@@ -46,8 +86,15 @@ class base_labeler():
         elif 'from_df' in self.label_source:
             ret = self._label_from_json(x)
         return ret
+
     def _label_from_path(self, path):
-        r = [self.label_type[idx] for idx, l in enumerate(self.label_name) if l in path]
+        index = None
+        for idx, i in enumerate(self.label_name):
+            if i in path:
+                index = idx
+                break
+        return index
+        
             
     def _label_from_json(self):
         pass
