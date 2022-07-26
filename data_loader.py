@@ -41,6 +41,7 @@ class Dataset(Dataset):
             img = pydicom.dcmread(self.imgs[idx])
 
         img = self.preprocessor.execute(img)
+        img = np.stack([img, img, img],-1)
         label = self.labels[idx]
         
         albu_dic = self.transform(image=img)

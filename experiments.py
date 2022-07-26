@@ -27,7 +27,7 @@ RUNTIME FAMILY
 use_amp = False
 print_freq = 1
 epoch = 100
-batch_size = 1
+batch_size = 4
 experiment_name = 'RSNA_COVID_1'
 ckpt_directory = './runs/{}/ckpt'.format(experiment_name)
 log_directory = './runs/{}/log'.format(experiment_name)

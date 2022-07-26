@@ -14,6 +14,7 @@ import train
 import argparse
 from configs_wrapper import setting
 from data_loader import Dataset
+from torch.utils.data import DataLoader
 
 import os
 import configs
@@ -34,8 +35,10 @@ dic = configs.Config.fromfile('./experiments.py')
 args = setting(dic)
 args.parse()
 
-setattr(args, 'train_dataloader', Dataset(args, mode='train'))
-setattr(args, 'valid_dataloader', Dataset(args, mode='valid'))
+setattr(args, 'train_dataloader', DataLoader(Dataset(args, mode='train'), 
+                                             batch_size= args.batch_size, shuffle=True, num_workers=0))
+setattr(args, 'valid_dataloader', DataLoader(Dataset(args, mode='valid'), 
+                                             batch_size= args.batch_size, shuffle=True, num_workers=0))
 setattr(args, 'device', device)
 
 for i in range(args.epoch):
