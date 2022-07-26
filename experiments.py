@@ -37,7 +37,7 @@ save_config = dict(family='runtime', lib='utils.family.runtime', type='Saver',
                          log_dir=log_directory, ckpt_dir=ckpt_directory, experiment_name=experiment_name, log_library='tensorboard')
 
 evaluation = dict(family='runtime', lib='utils.family.runtime', type='Metrics',
-         batch_size=batch_size, activation=None, threshold=0.5, name=['f_score', 'accuracy'], eps=1e-7, beta=1)
+         batch_size=batch_size, activation='custom', threshold=0.5, name=['f_score', 'accuracy'], eps=1e-7, beta=1)
 
 '''
 DATASET FAMILY
