@@ -6,7 +6,7 @@ MODEL FAMILY
 '''
     # model (model caller 구현해야할듯...)
 model = dict(family='model', lib='models', type='ResNet', 
-             n_classes=2, model_size=34, pretrained = False)
+             n_classes=4, model_size=34, pretrained = True)
 
     # optimizer
 optimizer = dict(family='model', lib='torch.optim', type='SGD', 
@@ -17,7 +17,7 @@ scheduler = dict(family='model', lib='torch.optim.lr_scheduler', type='StepLR',
                  step_size=0.1, gamma=0.1, last_epoch=-1, verbose=False)
 
     # loss
-loss = dict(family='model', lib='torch.nn', type='BCEWithLogitsLoss',
+loss = dict(family='model', lib='torch.nn', type='CrossEntropyLoss',
            weight=None, size_average=None, reduce=None, reduction='mean', pos_weight=None)
 
 '''
@@ -27,8 +27,8 @@ RUNTIME FAMILY
 use_amp = False
 print_freq = 1
 epoch = 100
-batch_size = 32
-experiment_name = 'wow'
+batch_size = 1
+experiment_name = 'RSNA_COVID_1'
 ckpt_directory = './runs/{}/ckpt'.format(experiment_name)
 log_directory = './runs/{}/log'.format(experiment_name)
 
@@ -41,20 +41,33 @@ evaluation = dict(family='runtime', lib='utils.family.runtime', type='Metrics',
 
 '''
 DATASET FAMILY
+
+    - modality: (str) CT, MR, EN, XRAY(?)
+
+    - task_type:  (str) BC, MC, ML 
+                !!! BC and MC will work without annotation_file
+
+    - label_type: (str) one-hot(float), ordinal(int)
+
+    - label_name: (list: str) ['label1', 'label2', ...]
+                ex) ['Normal', 'Disease']
+
+    - annotation_file: (str) None, ~.json, ~.csv, ~.xlsx
 '''
-modality = 'EN'
+modality = 'XRAY'
 
-data_root = '/~~~/datav1'
+data_root = '../../../nas252/open_dataset/RSNA_COVID19_detection/train'
 
-task_type = 'BC'
+task_type = 'MC'
 
 img_size = 512
 
-classes = ['EoE', 'Normal']
-labeler = dict(family='datautil', lib='utils.family.datautil', type='Source',
-               task_type='BC', label_type='one-hot', label_name=classes, annotation_file=None)
+classes = ['NegativeE', 'Typical', 'Indeterminate', 'Atypical']
 
-prep_config = dict(family='datautil', lib='utils.family.datautil', type='Endo_preprocessor',
+labeler = dict(family='datautil', lib='utils.family.datautil', type='Source',
+               task_type='MC', label_type='ordinal', label_name=classes, annotation_file='trainvalidtest_split_info.csv')
+
+prep_config = dict(family='datautil', lib='utils.family.datautil', type='XRay_Preprocessor',
                    image_size=img_size, normalize_range='1', mode='default')
 
 

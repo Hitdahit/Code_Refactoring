@@ -1,10 +1,10 @@
 import os
 import json
-from re import I
 import pandas as pd
 import numpy as np
 
 import cv2
+import glob
 
 '''
 Labeler
@@ -32,7 +32,7 @@ class Source():
         label_name: (list: str) ['label1', 'label2', ...]
                     ex) ['Normal', 'Disease']
 
-        annotation_file: (str) label_from_path, label_from_json, label_from_df
+        annotation_file: (str) None, ~.json, ~.csv, ~.xlsx
         '''
         self.task_type = task_type
         self.label_type = label_type
@@ -55,7 +55,6 @@ class Source():
             if 'ML' in self.task_type:
                 raise Exception('Multi Label classification requires annotation_file')
             
-            
             try:
                 '''
                 BC, MC annotation file 없는 경우
@@ -73,8 +72,30 @@ class Source():
         elif 'json' in self.annotation.split('.')[-1]:
             pass
         elif 'csv' in self.annotation.split('.')[-1] or 'xlsx' in self.annotation.split('.')[-1]:
-            pass
-
+            ''' custom '''
+            label_df = pd.read_csv('trainvalidtest_split_info.csv')
+            imgs_path = glob.glob(data_root+f"/**/**/*.dcm")
+            if mode == 'train':
+                train_df = label_df[label_df['train_label']==1]
+                id_df = train_df['id'].tolist()
+                img_ids = [image_id[1:] if '_' in image_id else image_id for image_id in id_df]
+                imgs = [img_path for i in img_ids for img_path in imgs_path if i in img_path]
+                labels = [train_df[train_df['id']==img_id]['integer_label'].values[0] for img_id in id_df]
+            elif mode == 'valid':
+                valid_df = label_df[label_df['train_label']==3]
+                id_df = valid_df['id'].tolist()
+                img_ids = [image_id[1:] if '_' in image_id else image_id for image_id in id_df]
+                imgs = [img_path for i in img_ids for img_path in imgs_path if i in img_path]
+                labels = [valid_df[valid_df['id']==img_id]['integer_label'].values[0] for img_id in id_df]
+            elif mode == 'test':
+                test_df = label_df[label_df['train_label']==2]
+                id_df = test_df['id'].tolist()
+                img_ids = [image_id[1:] if '_' in image_id else image_id for image_id in id_df]
+                imgs = [img_path for i in img_ids for img_path in imgs_path if i in img_path]
+                labels = [test_df[test_df['id']==img_id]['integer_label'].values[0] for img_id in id_df]
+            else:
+                raise Exception('Not defined dataloader type')
+                
         return imgs, labels
 
 
@@ -84,7 +105,7 @@ class Source():
         elif 'from_json' in self.label_source:
             ret = self._label_from_json(x)
         elif 'from_df' in self.label_source:
-            ret = self._label_from_json(x)
+            ret = self._label_from_df(x)
         return ret
 
     def _label_from_path(self, path):

@@ -1,3 +1,8 @@
+# !pip install addict
+# !pip install yapf
+# !pip install seaborn
+# !pip install pydicom
+
 import os
 import numpy as np
 import parser
@@ -5,6 +10,7 @@ import parser
 import torch
 
 from train import *
+import train
 import argparse
 from configs_wrapper import setting
 from data_loader import Dataset
