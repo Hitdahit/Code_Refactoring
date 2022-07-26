@@ -38,7 +38,7 @@ args.parse()
 setattr(args, 'train_dataloader', DataLoader(Dataset(args, mode='train'), 
                                              batch_size= args.batch_size, shuffle=True, num_workers=0))
 setattr(args, 'valid_dataloader', DataLoader(Dataset(args, mode='valid'), 
-                                             batch_size= args.batch_size, shuffle=True, num_workers=0))
+                                             batch_size= args.batch_size, shuffle=False, num_workers=0))
 setattr(args, 'device', device)
 
 args.model = args.model.to(args.device)
