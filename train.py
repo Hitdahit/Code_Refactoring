@@ -18,7 +18,7 @@ def train_one_epoch(args, epoch):
         x = data['image'].float().to(args.device)
         y = data['label'].long().to(args.device)
 
-        y_pred = args.model(x)
+        y_pred = args.model(x).to(args.device)
 
         with torch.cuda.amp.autocast(enabled=args.use_amp):
             y_pred = args.model(x)
