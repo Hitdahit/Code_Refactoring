@@ -18,7 +18,7 @@ scheduler = dict(family='model', lib='torch.optim.lr_scheduler', type='StepLR',
 
     # loss
 loss = dict(family='model', lib='torch.nn', type='CrossEntropyLoss',
-           weight=None, size_average=None, reduce=None, reduction='mean', pos_weight=None)
+           weight=None, size_average=None, ignore_index=-100, reduce=None, reduction='mean')
 
 '''
 RUNTIME FAMILY

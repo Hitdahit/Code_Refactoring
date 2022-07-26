@@ -41,6 +41,7 @@ setattr(args, 'valid_dataloader', DataLoader(Dataset(args, mode='valid'),
                                              batch_size= args.batch_size, shuffle=True, num_workers=0))
 setattr(args, 'device', device)
 
+args.model = args.model.to(args.device)
 for i in range(args.epoch):
     train_res = train_one_epoch(args, i)
     val_res = valid_one_epoch(args, i)
