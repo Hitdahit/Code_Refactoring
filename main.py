@@ -25,11 +25,12 @@ parser = argparse.ArgumentParser(description='Put your wanted GPU num(zero index
 parser.add_argument('--number', '-n', type=str, help='GPU_number, zero indexed')
 parser = parser.parse_args()
 
+os.environ["CUDA_VISIBLE_DEVICES"] = parser.number
 print('gpu? ', torch.cuda.is_available())
-device = torch.device(f'cuda:{parser.number}' if torch.cuda.is_available() else 'cpu')
-# device = torch.device(f'cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device(f'cuda:{parser.number}' if torch.cuda.is_available() else 'cpu')
+device = torch.device(f'cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.set_device(device)
-print('Current gpu: ', torch.cuda.current_device())
+print('Current gpu: ', parser.number)
 
 dic = configs.Config.fromfile('./experiments.py')
 args = setting(dic)
