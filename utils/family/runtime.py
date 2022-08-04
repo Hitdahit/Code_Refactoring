@@ -29,17 +29,19 @@ class Metrics():
         self.beta = beta
         
         self.metric_logger = MetricLogger(delimiter="  ", n=batch_size)
+        
         for i in self.name:
             self.metric_logger.add_meter(i, SmoothedValue(window_size=1, fmt='{value:.6f}')) 
 
-
+        self.metric_result=[]
     def execute(self, pred, gt):
         pred = self.activation(pred)
-        res = []
-        for i in self.name:
-            
+        
+        for i in self.name: 
             res = getattr(self, i)(pred, gt)
             dic = {i:res}
+
+            self.metric_result.append(res)
             self.metric_logger.update(**dic)
         
         
@@ -270,16 +272,43 @@ class Saver():
         self.experiment_name = experiment_name    
         
         if 'wandb' in log_library:
+            self.log_library = 'wandb'
             self.logger_train = None# wandb setup
             self.logger_valid = None# wandb setup
         
         elif 'tensorboard' in log_library:
+            self.log_library = 'tensorboard'
             self.logger_train = SummaryWriter(log_dir=os.path.join(self.log_dir, 'train'))
             self.logger_valid = SummaryWriter(log_dir=os.path.join(self.log_dir, 'valid'))
         
     
-    def add_log(self, ):
-        pass
+    def add_train_log(self, tag, step, scalar=None, image=None):
+        '''
+        tag -> str
+        scalar -> numpy
+        step -> int
+                log epoch by epoch-> epoch
+                log step by step -> epoch*(Whole_Dataset / Batch_Size)
+        image -> numpy 
+        '''
+        if 'wandb' in self.log_library:
+            pass
+        elif 'tensorboard' in self.log_library:
+            if scalar is not None:
+                self.logger_train.add_scalar(tag, scalar, step)
+            if image is not None:
+                self.logger_train.add_image(tag, image, step)
+
+
+    def add_valid_log(self, mode, tag, step, scalar=None, image=None):
+        if 'wandb' in self.log_library:
+            pass
+        elif 'tensorboard' in self.log_library:
+            if scalar is not None:
+                self.logger_valid.add_scalar(tag, scalar, step)
+            if image is not None:
+                self.logger_valid.add_image(tag, image, step)
+
     def save_checkpoint(self, net, optimizer, epoch):
         '''
         부가 기능 추가 가능 (ex acc 기록 등)

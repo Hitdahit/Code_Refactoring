@@ -22,10 +22,10 @@ def train_one_epoch(args, epoch):
 
         with torch.cuda.amp.autocast(enabled=args.use_amp):
             y_pred = args.model(x)
-            loss = args.loss(y_pred, y)
+            loss_value = args.loss(y_pred, y)
 
 
-        loss_value = loss.item()
+        loss_value = loss_value.item()
 
         if args.use_amp is True:
                 scaler.scale(loss).backward()
@@ -35,12 +35,15 @@ def train_one_epoch(args, epoch):
 
         else:
             args.optimizer.zero_grad()
-            loss.backward()
+            loss_value.backward()
             args.optimizer.step()
 
         args.evaluation.metric_logger.update(loss=loss_value, lr=args.optimizer.param_groups[0]["lr"])
         args.evaluation.execute(y_pred, y)
-    
+
+        args.save_config.add_train_log('loss', epoch, scalar=loss_value)
+        for (i, j) in zip(args.evaluation.name, args.evaluation.metric_result):
+            args.save_config.add_train_log(i, epoch, scalar=j)
 
     return {k : round(meter.global_avg) for k, meter in args.evaluation.metric_logger.meters.items()}
 
@@ -64,6 +67,10 @@ def valid_one_epoch(args, epoch):
         args.evaluation.metric_logger.update(loss=loss_value, lr=args.optimizer.param_groups[0]["lr"])
         args.evaluation.execute(y_pred, y)
 
+        args.save_config.add_valid_log('loss', epoch, scalar=loss_value)
+        for (i, j) in zip(args.evaluation.name, args.evaluation.metric_result):
+            args.save_config.add_valid_log(i, epoch, scalar=j)
+            
     return {k: round(meter.global_avg, 7) for k, meter in args.evaluation.metric_logger.meters.items()} 
 
 
