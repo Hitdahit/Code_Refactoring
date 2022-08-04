@@ -28,7 +28,7 @@ def train_one_epoch(args, epoch):
         loss_value = loss_value.item()
 
         if args.use_amp is True:
-                scaler.scale(loss).backward()
+                scaler.scale(loss_value).backward()
                 scaler.step(args.optimizer)
                 scaler.update()
                 args.optimizer.zero_grad()
@@ -70,7 +70,7 @@ def valid_one_epoch(args, epoch):
         args.save_config.add_valid_log('loss', epoch, scalar=loss_value)
         for (i, j) in zip(args.evaluation.name, args.evaluation.metric_result):
             args.save_config.add_valid_log(i, epoch, scalar=j)
-            
+
     return {k: round(meter.global_avg, 7) for k, meter in args.evaluation.metric_logger.meters.items()} 
 
 
