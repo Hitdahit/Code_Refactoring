@@ -106,7 +106,7 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, GoogLeNet) and each m
 
 	2. Slicing 3D to 2D : Check your task and decide which view (coronal, axial, sagittal) you need. Then slice 3D images and save 2D images in the format of numpy.  
 
-	All preprocessing code of the 3D images are in 3D_preprocessing.py.
+	All preprocessing code of the 3D images are in utils/3D_preprocessing.py.
 
 ​	iv. Gastro Endoscopy
 	소화기 내시경 동영상에서 추출한 '이미지' 기반으로 학습합니다.
