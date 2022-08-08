@@ -41,11 +41,12 @@ class Dataset(Dataset):
             img = pydicom.dcmread(self.imgs[idx])
 
         img = self.preprocessor.execute(img)
+        img = np.stack([img, img, img],-1)
         label = self.labels[idx]
         
         albu_dic = self.transform(image=img)
 
-        data_dic= {'image' : albu_dic['image'], 'label' : label} # Make dictionary which has one data to image key and one label to label key
+        data_dic = {'image' : albu_dic['image'], 'label' : torch.as_tensor(label, dtype=torch.int32)} # Make dictionary which has one data to image key and one label to label key
         return data_dic
     
 
