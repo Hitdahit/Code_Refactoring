@@ -59,3 +59,6 @@ class setting():
                         item_lst.append(getattr(sys.modules[lib], attr)(*param))
                         
                 setattr(self, i, item_lst)
+            
+            elif type(self.settings[i]) is None:
+                setattr(self, i, None)
