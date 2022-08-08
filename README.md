@@ -38,13 +38,20 @@ The main features of this snippets are:
 ​	 iii-2. Docker
 
 		---------------
-		Dockerfile.ts
-		---------------
-		FROM tensorflow/tensorflow:latest-gpu
-		RUN apt-get update && apt-get install -y apt-utils sudo vim libgl1-mesa-glx libgdcm-tools python3-pip 
-		RUN apt-get update --fix-missing
-		RUN pip3 install --upgrade pip
-		RUN pip3 install jupyter_contrib_nbextensions torch torchsummary torchvision tensorboardX albumentations numpy opencv-python 			SimpleITK pydicom==2.1.1 Pillow==8.0.1 nibabel scipy matplotlib tqdm sklearn ipywidgets
+		FROM mi2rl/mi2rl_image:201130_tf1.15.0
+
+		RUN apt-get update
+		RUN apt-get install -y sudo vim
+		RUN python3 install --upgrade pip
+		RUN python3 install jupyter_contrib_nbextensions torch torchsummary torchvision tensorboardX albumentations numpy opencv-python 			
+		RUN python3 -m pip install SimpleITK pydicom==2.1.1 Pillow==8.0.1 nibabel scipy matplotlib tqdm sklearn ipywidgets
+
+		RUN addgroup --gid 1000001 gusers
+		RUN adduser --uid 1000UID --gid 1000001 --disabled-password --gecos '' #UserName#
+		RUN adduser #UserName# sudo
+		RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+		USER #UserName#
 		---------------
 
 ​	iv. version changing (for your ablation study)
@@ -62,7 +69,7 @@ The main features of this snippets are:
 ​	iii. How to evaluate trained model 
 
 ### 3. Models
-We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and each models have different number of layers. You can choose the architecture based on your dataset.
+We provide 4 well-known CNN models (ResNet, VGG, DenseNet, GoogLeNet) and each models have different number of layers. You can choose the architecture based on your dataset.
 
     i. ResNet : We have implemented 5 different architectures of ResNet such as ResNet18, ResNet34, ResNet50, Resnet101, ResNet152. 
 
@@ -70,11 +77,7 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and eac
 
     iii. DenseNet : We have implemented 3 different architectures of DenseNet such as DenseNet121, DenseNet169, DenseNet201.
 
-    iv. EfficientNet : 
-
-	v. SENet : SE Block..?
-
-	vi. GoogLeNet : 
+	iv. GoogLeNet
 
 ### 4. Supporting Modalities
 
@@ -96,6 +99,14 @@ We provide 4 well-known CNN models (ResNet, VGG, DenseNet, EfficientNet) and eac
 	Note that CT slices dicom image has 8,12,16 bits.
 
 ​	iii. MR slices
+
+	MR images are obtained in 3D which needs slicing 3D to 2D. Before slicing, we have to check the origin and direction of images.
+	
+	1. Set the origin and direction : Check the origin and direction of the image using the SimpleITK library, and set the origin and direction to be the same. 
+
+	2. Slicing 3D to 2D : Check your task and decide which view (coronal, axial, sagittal) you need. Then slice 3D images and save 2D images in the format of numpy.  
+
+	All preprocessing code of the 3D images are in utils/3D_preprocessing.py.
 
 ​	iv. Gastro Endoscopy
 	소화기 내시경 동영상에서 추출한 '이미지' 기반으로 학습합니다.
