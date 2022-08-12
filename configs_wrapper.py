@@ -12,7 +12,7 @@ class setting():
         for i in self.settings.keys():
             
             
-            if type(self.settings[i]) is str or type(self.settings[i]) is int:
+            if type(self.settings[i]) is str or type(self.settings[i]) is int or type(self.settings[i]) is bool:
                 setattr(self, i, self.settings[i])
         
             elif type(self.settings[i]) is configs.ConfigDict:
@@ -59,3 +59,6 @@ class setting():
                         item_lst.append(getattr(sys.modules[lib], attr)(*param))
                         
                 setattr(self, i, item_lst)
+            
+            elif type(self.settings[i]) is None:
+                setattr(self, i, None)

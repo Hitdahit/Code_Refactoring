@@ -5,7 +5,7 @@ from tqdm import tqdm as tqdm
 import torch
 #device, dataloader
 
-def train_one_epoch(args, epoch):
+def train_one_epoch(args, epoch, scheduler=True):
     #model, dataloader, fn_loss, optimizer, device, epoch, print_freq, batch_size, use_amp
     args.model.train()
 
@@ -17,7 +17,7 @@ def train_one_epoch(args, epoch):
     for data in args.evaluation.metric_logger.log_every(args.train_dataloader, args.print_freq, log_header):
         x = data['image'].float().to(args.device)
         y = data['label'].long().to(args.device)
-
+        
         y_pred = args.model(x)
 
         with torch.cuda.amp.autocast(enabled=args.use_amp):
@@ -38,6 +38,11 @@ def train_one_epoch(args, epoch):
             loss_value.backward()
             args.optimizer.step()
 
+        if scheduler is True and args.scheduler is not None:
+            scheduler.step()
+        elif scheduler is True and args.scheduler is None:
+            raise Exception('from train: you need to set your scheduler in your settings file')
+        
         args.evaluation.metric_logger.update(loss=loss_value, lr=args.optimizer.param_groups[0]["lr"])
         args.evaluation.execute(y_pred, y)
 
@@ -49,7 +54,7 @@ def train_one_epoch(args, epoch):
 
 
 @torch.no_grad()
-def valid_one_epoch(args, epoch):
+def valid_one_epoch(args, epoch, scheduler=False):
     args.model.eval()
     
     log_header = 'TEST:'
@@ -62,6 +67,11 @@ def valid_one_epoch(args, epoch):
 
         loss = args.loss(y_pred, y)
         loss_value = loss.item()
+
+        if scheduler is True and args.scheduler is not None:
+            scheduler.step()
+        elif scheduler is True and args.scheduler is None:
+            raise Exception('from validation: you need to set your scheduler in your settings file')
         args.evaluation.metric_logger.update(loss=loss_value)
 
         args.evaluation.metric_logger.update(loss=loss_value, lr=args.optimizer.param_groups[0]["lr"])

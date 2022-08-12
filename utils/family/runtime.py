@@ -4,6 +4,9 @@ import sys
 import time
 import warnings
 import datetime
+import wandb
+import math
+from torch.optim.lr_scheduler import _LRScheduler
 from collections import defaultdict, deque
 from typing import Optional, List, Tuple, Union
 import matplotlib.pyplot as plt
@@ -735,13 +738,14 @@ Custom Activation:
 
 
 class custom_activation(nn.Module):
+
     def __init__(self):
         pass
 
     def forward(self, x):
         pass
 
-
+######################## SAVE LOGS & CHECKPOINTS #############################
 '''
 Checkpoint & Log saver
 '''
@@ -803,6 +807,115 @@ class Saver():
         torch.save({'net': net.state_dict(), 'optim': optimizer.state_dict()},
                    '%s/%s/%d.pth' % (self.ckpt_dir, self.experiment_name, epoch))
 
+
+
+######################## LOSS #############################
+'''
+if you want to custom your loss,
+then implement your loss in 'cutom_loss' class like code below.
+
+ex.
+class FocalLoss(nn.Module):
+    def__init__(self, weight=None, gamma=2.f, reduction='none'):
+        super().__init__()
+        self.weight = weight
+        self.gamma = gamma
+        self.reduction = reduction
+    
+    def forward(self, pred, gt):
+        log_prob = F.log_softmax(pred, dim=-1)
+        prob = torch.exp(log_prob)
+        return F.nll_loss(((1-prob)**self.gamma)*log_prob, gt, weight=self.weight, reduction=self.reduction)
+'''
+
+
+class custom_loss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        pass
+    def forward():
+        pass
+
+######################## LR_SCHEDULER #############################
+'''
+if you want to custom your lr scheduler,
+then implement your loss in 'cutom_LRScheduler' class like code below.
+
+ex. https://github.com/gaussian37/pytorch_deep_learning_models/blob/master/cosine_annealing_with_warmup/cosine_annealing_with_warmup.py
+
+class CosineAnnealingWarmUpRestarts(_LRScheduler):
+    def __init__(self, optimizer, T_0, T_mult=1, eta_max=0.1, T_up=0, gamma=1., last_epoch=-1):
+        if T_0 <= 0 or not isinstance(T_0, int):
+            raise ValueError("Expected positive integer T_0, but got {}".format(T_0))
+        if T_mult < 1 or not isinstance(T_mult, int):
+            raise ValueError("Expected integer T_mult >= 1, but got {}".format(T_mult))
+        if T_up < 0 or not isinstance(T_up, int):
+            raise ValueError("Expected positive integer T_up, but got {}".format(T_up))
+        self.T_0 = T_0
+        self.T_mult = T_mult
+        self.base_eta_max = eta_max
+        self.eta_max = eta_max
+        self.T_up = T_up
+        self.T_i = T_0
+        self.gamma = gamma
+        self.cycle = 0
+        self.T_cur = last_epoch
+        super(CosineAnnealingWarmUpRestarts, self).__init__(optimizer, last_epoch)
+    
+    def get_lr(self):
+        if self.T_cur == -1:
+            return self.base_lrs
+        elif self.T_cur < self.T_up:
+            return [(self.eta_max - base_lr)*self.T_cur / self.T_up + base_lr for base_lr in self.base_lrs]
+        else:
+            return [base_lr + (self.eta_max - base_lr) * (1 + math.cos(math.pi * (self.T_cur-self.T_up) / (self.T_i - self.T_up))) / 2
+                    for base_lr in self.base_lrs]
+
+    def step(self, epoch=None):
+        if epoch is None:
+            epoch = self.last_epoch + 1
+            self.T_cur = self.T_cur + 1
+            if self.T_cur >= self.T_i:
+                self.cycle += 1
+                self.T_cur = self.T_cur - self.T_i
+                self.T_i = (self.T_i - self.T_up) * self.T_mult + self.T_up
+        else:
+            if epoch >= self.T_0:
+                if self.T_mult == 1:
+                    self.T_cur = epoch % self.T_0
+                    self.cycle = epoch // self.T_0
+                else:
+                    n = int(math.log((epoch / self.T_0 * (self.T_mult - 1) + 1), self.T_mult))
+                    self.cycle = n
+                    self.T_cur = epoch - self.T_0 * (self.T_mult ** n - 1) / (self.T_mult - 1)
+                    self.T_i = self.T_0 * self.T_mult ** (n)
+            else:
+                self.T_i = self.T_0
+                self.T_cur = epoch
+                
+        self.eta_max = self.base_eta_max * (self.gamma**self.cycle)
+        self.last_epoch = math.floor(epoch)
+        for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
+            param_group['lr'] = lr
+'''
+class custom_LRScheduler(_LRScheduler):
+    def __init__(self, optimizer, last_epoch):
+        super(custom_LRScheduler, self).__init__(optimizer, last_epoch)
+        pass
+
+    def _get_lr(self):
+        '''
+        implement your equation to change your learning rate
+        '''
+        pass
+
+    def step(self):
+        '''
+        use this funtion in your training loop
+        '''
+        pass
+
+   
 
 ################################# Do Not Touch Here #######################################
 
