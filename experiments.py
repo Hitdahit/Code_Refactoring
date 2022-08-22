@@ -6,11 +6,11 @@ MODEL FAMILY
 '''
     # model (model caller 구현해야할듯...)
 model = dict(family='model', lib='models', type='ResNet', 
-             n_classes=4, model_size=34, pretrained = True)
+             n_classes=2, model_size=50, pretrained = True)
 
     # optimizer
-optimizer = dict(family='model', lib='torch.optim', type='SGD', 
-                 lr=0.01, momentum=0.9, weight_decay=0.0005)
+optimizer = dict(family='model', lib='torch.optim', type='Adam', 
+                 lr=1e-3)
 
     # loss
 loss = dict(family='model', lib='torch.nn', type='CrossEntropyLoss',
@@ -43,9 +43,9 @@ RUNTIME FAMILY
     # runtime settings
 use_amp = False
 print_freq = 1
-epoch = 100
-batch_size = 4
-experiment_name = 'RSNA_COVID_1'
+epoch = 140
+batch_size = 16
+experiment_name = 'experiments'
 ckpt_directory = './runs/{}/ckpt'.format(experiment_name)
 log_directory = './runs/{}/log'.format(experiment_name)
 
@@ -88,24 +88,24 @@ DATASET FAMILY
 
     - annotation_file: (str) None, ~.json, ~.csv, ~.xlsx
 '''
-modality = 'XRAY'
+modality = 'EN'
 
-data_root = '../../../nas252/open_dataset/RSNA_COVID19_detection/train'
+data_root = '/mnt/nas125_vol2/jisup/DATA/CD_TB/new_data/20220613_new/'
 
-task_type = 'MC'
+task_type = 'BC'
 
 img_size = 512
 
-classes = ['NegativeE', 'Typical', 'Indeterminate', 'Atypical']
+classes = ['CD','TB']
 
 '''
 
 '''
 
 labeler = dict(family='datautil', lib='utils.family.datautil', type='Source',
-               task_type='MC', label_type='ordinal', label_name=classes, annotation_file='trainvalidtest_split_info.csv')
+               task_type='BC', label_type='ordinal', label_name=classes)
 
-prep_config = dict(family='datautil', lib='utils.family.datautil', type='XRay_Preprocessor',
+prep_config = dict(family='datautil', lib='utils.family.datautil', type='Endo_preprocessor',
                    image_size=img_size, normalize_range='1', mode='default')
 
 
