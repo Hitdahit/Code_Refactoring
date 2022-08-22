@@ -9,6 +9,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 from collections import defaultdict, deque
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -35,20 +36,21 @@ class Metrics():
         
         for i in self.name:
             self.metric_logger.add_meter(i, SmoothedValue(window_size=1, fmt='{value:.6f}')) 
-
+        
+        self.name_list = []
         self.metric_result=[]
+        self.metric_result_dict = {'name': self.name_list, 'metric result': self.metric_result}
+        
     def execute(self, pred, gt):
         pred = self.activation(pred)
         
         for i in self.name: 
             res = getattr(self, i)(pred, gt)
             dic = {i:res}
-
-            self.metric_result.append(res)
+            self.name_list.append(i)
+            self.metric_result.append(res.cpu())
             self.metric_logger.update(**dic)
-        
-        
-    
+            
     @property
     def __name__(self):
         if self.name is None:
@@ -304,7 +306,7 @@ class Saver():
                 self.logger_train.add_image(tag, image, step)
 
 
-    def add_valid_log(self, mode, tag, step, scalar=None, image=None):
+    def add_valid_log(self, tag, step, scalar=None, image=None):
         if 'wandb' in self.log_library:
             pass
         elif 'tensorboard' in self.log_library:

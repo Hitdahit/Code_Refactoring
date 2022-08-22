@@ -1,5 +1,7 @@
 import sys
 import numpy as np
+import pandas as pd
+
 from tqdm import tqdm as tqdm
 
 import torch
@@ -24,9 +26,6 @@ def train_one_epoch(args, epoch, scheduler=True):
             y_pred = args.model(x)
             loss_value = args.loss(y_pred, y)
 
-
-        loss_value = loss_value.item()
-
         if args.use_amp is True:
                 scaler.scale(loss_value).backward()
                 scaler.step(args.optimizer)
@@ -37,9 +36,11 @@ def train_one_epoch(args, epoch, scheduler=True):
             args.optimizer.zero_grad()
             loss_value.backward()
             args.optimizer.step()
+        
+        loss_value = loss_value.item()
 
         if scheduler is True and args.scheduler is not None:
-            scheduler.step()
+            args.scheduler.step()
         elif scheduler is True and args.scheduler is None:
             raise Exception('from train: you need to set your scheduler in your settings file')
         
@@ -47,9 +48,18 @@ def train_one_epoch(args, epoch, scheduler=True):
         args.evaluation.execute(y_pred, y)
 
         args.save_config.add_train_log('loss', epoch, scalar=loss_value)
-        for (i, j) in zip(args.evaluation.name, args.evaluation.metric_result):
-            args.save_config.add_train_log(i, epoch, scalar=j)
+        # for (i, j) in zip(args.evaluation.name, args.evaluation.metric_result):
+        #     args.save_config.add_train_log(i, epoch, scalar=j)
+    
+    for i in args.evaluation.name: 
+        df = pd.DataFrame.from_dict(args.evaluation.metric_result_dict)
+        metric_val_mean = df.loc[df['name'] == i]['metric result'].mean()
+        args.save_config.add_train_log(i, epoch, scalar=metric_val_mean)
 
+    args.evaluation.name_list = []
+    args.evaluation.metric_result = []
+    args.evaluation.metric_result_dict = {'name': args.evaluation.name_list, 'metric result': args.evaluation.metric_result}
+    
     return {k : round(meter.global_avg) for k, meter in args.evaluation.metric_logger.meters.items()}
 
 
@@ -78,8 +88,13 @@ def valid_one_epoch(args, epoch, scheduler=False):
         args.evaluation.execute(y_pred, y)
 
         args.save_config.add_valid_log('loss', epoch, scalar=loss_value)
+
         for (i, j) in zip(args.evaluation.name, args.evaluation.metric_result):
             args.save_config.add_valid_log(i, epoch, scalar=j)
+            
+    args.evaluation.name_list = []
+    args.evaluation.metric_result = []            
+    args.evaluation.metric_result_dict = {'name': args.evaluation.name_list, 'metric result': args.evaluation.metric_result}
 
     return {k: round(meter.global_avg, 7) for k, meter in args.evaluation.metric_logger.meters.items()} 
 

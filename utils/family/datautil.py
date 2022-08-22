@@ -60,12 +60,13 @@ class Source():
                 BC, MC annotation file 없는 경우
                 '''
                 imgs = [os.listdir(os.path.join(data_root, mode, i)) for i in self.label_name]
-                imgs = [os.path.join(data_root, mode, self.classes[idx], j) for idx, i in enumerate(imgs) for j in i]
+                imgs = [os.path.join(data_root, mode, self.label_name[idx], j) for idx, i in enumerate(imgs) for j in i]
+
+                # labels =[self.label[self._label_from_path(i)] for i in imgs]
+                # labels = np.array(labels, dtype=np.float32) if 'one-hot' in self.label_type else np.array(labels, dtype=np.int64)
                 
-                labels =[self.label[self._label_from_path(i)] for i in imgs]
+                labels = self._label_from_path_custom(imgs)
                 
-                labels = np.array(labels, dtype=np.float32) if 'one-hot' in self.label_type else np.array(labels, dtype=np.int64)
-                                
             except:
                 raise Exception('your img data path does not contain none of the label_name.')
         
@@ -115,13 +116,27 @@ class Source():
                 index = idx
                 break
         return index
-        
             
     def _label_from_json(self):
         pass
     def _label_from_df(self):
         pass
-
+    def _label_from_path_custom(self, label_name):
+        
+        Label_List = []
+        label_name = label_name
+        
+        for i in label_name:
+            if ('/CD/' in i):
+                Label_List.append(0)
+                
+            elif ('/TB/' in i):
+                Label_List.append(1)
+                
+            else :
+                Label_List.append(2)
+        return Label_List
+    
 '''
 every default preprocessing is min max!
 '''
@@ -312,11 +327,9 @@ class Endo_preprocessor():
         # Set to float
         # note that image was read by cv2
         arr = x.astype(np.float32)
-        arr = arr.squeeze() # Delete 1 dimension in array -> make (512,512)
-
         # If image_size is not what you want, change it.
         resize_config = cv2.INTER_AREA if self.img_sz > arr.shape[0] else cv2.INTER_CUBIC
-        arr = cv2.resize(arr, resize_config)
+        arr = cv2.resize(arr, (self.img_sz,self.img_sz))
         
         arr = (arr - np.min(arr)) / (np.max(arr) - np.min(arr))
         
